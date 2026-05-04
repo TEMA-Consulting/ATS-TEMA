@@ -1,159 +1,131 @@
-# Turborepo starter
+# ATS HRMS
 
-This Turborepo starter is maintained by the Turborepo core team.
+Web-based Applicant Tracking System for a single company. Covers the full recruitment lifecycle: job posting → candidate registration → CV parsing + AI scoring → pipeline management → interviews → offer → employee conversion.
 
-## Using this example
+## Stack
 
-Run the following command:
+| Layer       | Tech                                                     |
+| ----------- | -------------------------------------------------------- |
+| Frontend    | Next.js 15 (App Router), TypeScript strict, Tailwind CSS |
+| Data / Auth | Firebase Auth, Firestore, Storage, Cloud Functions       |
+| AI          | OpenAI GPT-4o-mini (CV parsing + fit scoring)            |
+| State       | TanStack Query (server state), useState/useReducer (UI)  |
+| Monorepo    | pnpm workspaces + Turborepo                              |
+| Icons       | lucide-react                                             |
 
-```sh
-npx create-turbo@latest
+**Deployment:** Firebase Hosting + Cloud Functions (Node 20).
+
+## Monorepo structure
+
+```
+apps/web/src/
+  app/
+    (public)/       SSG — job board, no auth
+    (hr)/           SSR — recruiter dashboard, auth required
+    (candidate)/    CSR — candidate portal
+  features/         Co-located by feature (jobs, candidates, pipeline, interviews, offers)
+  repositories/
+    interfaces/     TypeScript interfaces — Firebase never imported here
+    firebase/       Firebase implementations — ONLY place Firebase is imported
+    index.ts        Swap here to migrate to another DB
+  shared/
+    lib/firebase.ts SDK init only
+packages/shared-types/   DTOs shared between web and functions
+apps/functions/src/
+  triggers/         Thin Cloud Function handlers
+  services/         Business logic
+  ai/               CV parsing, scoring, matching
 ```
 
-## What's inside?
+## Setup
 
-This Turborepo includes the following packages/apps:
+**Prerequisites**
 
-### Apps and Packages
-
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo build
+```bash
+npm install -g pnpm firebase-tools
+node >= 22
 ```
 
-Without global `turbo`, use your package manager:
+**Install**
 
-```sh
-cd my-turborepo
-npx turbo build
-pnpm dlx turbo build
-pnpm exec turbo build
+```bash
+pnpm install
+pnpm audit --fix      # fix outdated deps if needed
 ```
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+**Firebase login**
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo build --filter=docs
+```bash
+firebase login        # use grupo.quatro.ort@gmail.com
 ```
 
-Without global `turbo`:
+## Development
 
-```sh
-npx turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
+```bash
+# Start Next.js dev server
+pnpm dev-web
+# or
+pnpm turbo run dev --filter=@ats/web
+
+# Start Firebase emulators (run once to init, then just start)
+firebase init emulators
+firebase emulators:start
+
+# Compile Cloud Functions
+pnpm compile-fn
+# or
+pnpm turbo run build --filter=@ats/functions
 ```
 
-### Develop
+## All scripts
 
-To develop all apps and packages, run the following command:
+| Command            | Description                      |
+| ------------------ | -------------------------------- |
+| `pnpm dev`         | Start all apps in dev mode       |
+| `pnpm dev-web`     | Start Next.js only               |
+| `pnpm build`       | Build all apps                   |
+| `pnpm compile-fn`  | Build Cloud Functions only       |
+| `pnpm lint`        | Lint all packages                |
+| `pnpm format`      | Prettier format all TS/MD files  |
+| `pnpm check-types` | TypeScript check across monorepo |
+| `pnpm test`        | Run all tests                    |
+| `pnpm test:watch`  | Tests in watch mode              |
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+**Deploy**
 
-```sh
-cd my-turborepo
-turbo dev
+```bash
+pnpm deploy               # full deploy
+pnpm deploy:functions     # functions only
+pnpm deploy:rules         # Firestore + Storage rules only
+pnpm deploy:hosting       # hosting only
+pnpm deploy:staging       # deploy to staging alias
 ```
 
-Without global `turbo`, use your package manager:
+## Contributing
 
-```sh
-cd my-turborepo
-npx turbo dev
-pnpm exec turbo dev
-pnpm exec turbo dev
+Commits follow [Conventional Commits](https://www.conventionalcommits.org/es/). A pre-commit hook runs lint + format + tests automatically.
+
+```
+feat(pipeline): add discard reason validation
+fix(auth): handle expired session redirect
 ```
 
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+**Before every PR**
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+- No Firebase imports outside `repositories/firebase/` and `shared/lib/`
+- New fields added to `packages/shared-types`
+- Side effects (emails, scoring, counters) in Cloud Functions — not frontend
+- Colors from palette only, no raw hex
+- Only lucide-react icons
+- `pnpm check-types` passes, no `any`
 
-```sh
-turbo dev --filter=web
+**Adding a feature**
+
 ```
-
-Without global `turbo`:
-
-```sh
-npx turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
+1. Define/update types in packages/shared-types
+2. Add method to repository interface (interfaces/)
+3. Implement in Firebase repository (firebase/)
+4. Write service method — business logic here, not in repository
+5. Build component/page — calls service only, never Firebase directly
+6. Add Cloud Function if feature has side effects
 ```
-
-### Remote Caching
-
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo login
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo login
-pnpm exec turbo login
-pnpm exec turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo link
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo link
-pnpm exec turbo link
-pnpm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
