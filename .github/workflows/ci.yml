@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+# Cancela ejecuciones anteriores si se sube nuevo código al mismo PR
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Lint, Typecheck & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: ⬇️ Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2 # Permite a Turbo comparar cambios contra el commit anterior
+
+      - name: 📦 Instalar pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: 🟢 Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - name: 📥 Instalar dependencias
+        run: pnpm install --frozen-lockfile
+
+      - name: 🏎️ Configurar Caché de Turborepo
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
+
+      - name: 🔍 Validar Lint
+        run: pnpm lint
+
+      - name: 🧪 Ejecutar Tests
+        run: pnpm test
