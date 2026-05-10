@@ -1,4 +1,4 @@
-import PostulationView from "@/features/postulation/components/PostulationView";
+import PostulationView from "@/features/postulation/PostulationView";
 
 export default function PostulationPage() {
   return <PostulationView />;

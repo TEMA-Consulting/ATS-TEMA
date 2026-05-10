@@ -1,7 +1,10 @@
+import PostulationView from "./features/postulation/PostulationView";
+
 export default function Home() {
   return (
     <main>
-      <h1>ATS HRMS</h1>
+      <PostulationView/>
     </main>
   );
 }
+  
