@@ -1,5 +1,5 @@
-import PostulationView from "@/features/postulation/components/PostulationView"
+import SuccessView from "@/features/postulation/components/SuccessView"
 
 export default function SucessPage() {
-    return <PostulationView></PostulationView>
+    return <SuccessView></SuccessView>
 }
