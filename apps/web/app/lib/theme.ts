@@ -19,6 +19,7 @@ const theme = createTheme({
     },
     success: {
       main: "#16a34a",
+      light: "#dbfce7"
     },
   },
   typography: {
