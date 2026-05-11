@@ -1,6 +1,7 @@
 "use client";
 
 import { Card, Typography, Box, Stack } from "@mui/material";
+import Link from "next/link";
 import { LucideIcon } from "lucide-react";
 
 interface MethodCardProps {
@@ -8,10 +9,11 @@ interface MethodCardProps {
     description: string;
     badgeText: string;
     Icon: LucideIcon;
+    href?: string;
 }
 
-export function MethodCard({ title, description, badgeText, Icon }: MethodCardProps) {
-    return (
+export function MethodCard({ title, description, badgeText, Icon, href }: MethodCardProps) {
+    const card = (
         <Card sx={{
             flex: 1,
             maxWidth: 400,
@@ -76,5 +78,25 @@ export function MethodCard({ title, description, badgeText, Icon }: MethodCardPr
                 </Typography>
             </Box>
         </Card>
+    );
+
+    if (href == null || href === "") {
+        return card;
+    }
+
+    return (
+        <Link
+            href={href}
+            prefetch={false}
+            style={{
+                flex: 1,
+                maxWidth: 400,
+                textDecoration: "none",
+                color: "inherit",
+                display: "block",
+            }}
+        >
+            {card}
+        </Link>
     );
 }

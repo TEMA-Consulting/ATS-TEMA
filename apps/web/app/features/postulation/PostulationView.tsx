@@ -4,7 +4,13 @@ import { Container, Typography, Box, Stack } from "@mui/material";
 import { FileText, Upload } from 'lucide-react';
 import { MethodCard } from "./components/MethodCard";
 
-export default function PostulationView() {
+/** En home no hay vacante en la URL: se usa fallback para poder abrir el flujo manual hasta integrar lista de jobs */
+const FALLBACK_JOB_ID = "demo";
+
+export default function PostulationView({ jobId }: { jobId?: string }) {
+  const effectiveJobId = jobId ?? FALLBACK_JOB_ID;
+  const manualHref = `/postulation/${effectiveJobId}/manual`;
+
   return (
     <Container
       maxWidth="lg"
@@ -45,6 +51,7 @@ export default function PostulationView() {
         />
 
         <MethodCard
+          href={manualHref}
           Icon={FileText}
           title="Carga Manual"
           description="Completa el formulario manualmente con tu información profesional"
