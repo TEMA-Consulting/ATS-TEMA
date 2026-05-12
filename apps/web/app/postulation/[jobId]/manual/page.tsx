@@ -1,4 +1,4 @@
-import { ManualCandidateForm } from "@/features/postulation/components/manual-candidate-form/ManualCandidateForm";
+import { ManualCandidateForm } from '@/features/postulation/components/manual-candidate-form/ManualCandidateForm';
 
 type ManualPostulationPageProps = {
   params: Promise<{ jobId: string }>;

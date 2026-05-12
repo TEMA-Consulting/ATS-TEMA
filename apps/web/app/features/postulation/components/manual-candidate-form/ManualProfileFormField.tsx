@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { Box, TextField, Typography, type TextFieldProps } from "@mui/material";
-import type { LucideIcon } from "lucide-react";
+import { Box, TextField, Typography, type TextFieldProps } from '@mui/material';
+import type { LucideIcon } from 'lucide-react';
 
 type FormFieldBag = {
   name: string;
@@ -30,12 +30,12 @@ type ManualProfileFormFieldProps = {
     onSubmit?: (p: { value: string }) => string | undefined;
   };
   gridColumnFull?: boolean;
-  fieldType?: "text" | "email" | "tel" | "number";
+  fieldType?: 'text' | 'email' | 'tel' | 'number';
   multiline?: boolean;
   minRows?: number;
   placeholder?: string;
   autoComplete?: string;
-  slotProps?: TextFieldProps["slotProps"];
+  slotProps?: TextFieldProps['slotProps'];
 };
 
 export function ManualProfileFormField({
@@ -46,14 +46,16 @@ export function ManualProfileFormField({
   required,
   validators,
   gridColumnFull,
-  fieldType = "text",
+  fieldType = 'text',
   multiline,
   minRows,
   placeholder,
   autoComplete,
   slotProps,
 }: ManualProfileFormFieldProps) {
-  const boxSx = gridColumnFull ? { gridColumn: { md: "1 / -1" as const } } : undefined;
+  const boxSx = gridColumnFull
+    ? { gridColumn: { md: '1 / -1' as const } }
+    : undefined;
 
   return (
     <Field name={name} validators={validators}>
@@ -61,9 +63,9 @@ export function ManualProfileFormField({
         <Box sx={boxSx}>
           <Box
             sx={{
-              display: "flex",
-              flexDirection: "row",
-              alignItems: "center",
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center',
               gap: 1,
               mb: 1,
             }}
@@ -73,11 +75,11 @@ export function ManualProfileFormField({
               component="label"
               htmlFor={field.name}
               variant="body1"
-              sx={{ fontWeight: 500, color: "text.secondary" }}
+              sx={{ fontWeight: 500, color: 'text.secondary' }}
             >
               {label}
               {required ? (
-                <Box component="span" sx={{ color: "error.main", ml: 0.25 }}>
+                <Box component="span" sx={{ color: 'error.main', ml: 0.25 }}>
                   *
                 </Box>
               ) : null}

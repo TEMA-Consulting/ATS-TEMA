@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { Container, Typography, Box, Stack } from "@mui/material";
+import { Container, Typography, Box, Stack } from '@mui/material';
 import { FileText, Upload } from 'lucide-react';
-import { MethodCard } from "./MethodCard";
+import { MethodCard } from './MethodCard';
 
 export default function PostulationView() {
   return (
@@ -13,28 +13,33 @@ export default function PostulationView() {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: 2
-      }}>
-      <Box sx={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        bgcolor: "primary.main",
-        p: 2.5,
-        borderRadius: "50%",
-        mb: 1
-      }}>
+        gap: 2,
+      }}
+    >
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          bgcolor: 'primary.main',
+          p: 2.5,
+          borderRadius: '50%',
+          mb: 1,
+        }}
+      >
         <FileText color="white" size={24} />
       </Box>
 
-      <Typography variant="h1" sx={{ mb: 0.5 }}>Registro de Candidato</Typography>
+      <Typography variant="h1" sx={{ mb: 0.5 }}>
+        Registro de Candidato
+      </Typography>
       <Typography variant="body1" color="text.secondary" sx={{ mb: 6 }}>
         Selecciona cómo deseas completar tu perfil profesional
       </Typography>
 
-      <Stack 
-        direction={{ xs: 'column', md: 'row' }} 
-        spacing={3} 
+      <Stack
+        direction={{ xs: 'column', md: 'row' }}
+        spacing={3}
         sx={{ width: '100%', justifyContent: 'center', mb: 6 }}
       >
         <MethodCard

@@ -1,29 +1,21 @@
 {
-    "hosting": {
-        "source": "apps/web",
-        "ignore": [
-            "firebase.json",
-            "**/.*",
-            "**/node_modules/**"
-        ],
-        "frameworksBackend": {
-            "region": "us-central1"
-        }
-    },
-    "functions": {
-        "source": "apps/functions",
-        "runtime": "nodejs22",
-        "ignore": [
-            "node_modules",
-            "lib",
-            ".git"
-        ]
-    },
-    "firestore": {
-        "rules": "firestore.rules",
-        "indexes": "firestore.indexes.json"
-    },
-    "storage": {
-        "rules": "storage.rules"
+  "hosting": {
+    "source": "apps/web",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "frameworksBackend": {
+      "region": "us-central1"
     }
+  },
+  "functions": {
+    "source": "apps/functions",
+    "runtime": "nodejs22",
+    "ignore": ["node_modules", "lib", ".git"]
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  }
 }

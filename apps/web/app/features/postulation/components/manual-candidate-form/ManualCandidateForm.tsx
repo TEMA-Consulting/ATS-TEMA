@@ -1,13 +1,30 @@
-"use client";
+'use client';
 
-import { useForm } from "@tanstack/react-form";
-import { alpha, Box, Button, Card, CardContent, IconButton, Typography } from "@mui/material";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import {Briefcase, FileText, GraduationCap, Mail, MapPin, Phone, User, X} from "lucide-react";
+import { useForm } from '@tanstack/react-form';
+import {
+  alpha,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  IconButton,
+  Typography,
+} from '@mui/material';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import {
+  Briefcase,
+  FileText,
+  GraduationCap,
+  Mail,
+  MapPin,
+  Phone,
+  User,
+  X,
+} from 'lucide-react';
 
-import type { MinimalFormFieldComponent } from "./ManualProfileFormField";
-import { ManualProfileFormField } from "./ManualProfileFormField";
+import type { MinimalFormFieldComponent } from './ManualProfileFormField';
+import { ManualProfileFormField } from './ManualProfileFormField';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -25,16 +42,16 @@ type ManualCandidateValues = {
 };
 
 const defaultValues: ManualCandidateValues = {
-  firstName: "",
-  lastName: "",
-  email: "",
-  phone: "",
-  location: "",
-  desiredPosition: "",
-  experienceYears: "",
-  education: "",
-  technicalSkills: "",
-  professionalSummary: "",
+  firstName: '',
+  lastName: '',
+  email: '',
+  phone: '',
+  location: '',
+  desiredPosition: '',
+  experienceYears: '',
+  education: '',
+  technicalSkills: '',
+  professionalSummary: '',
 };
 
 function requiredTrim(message: string) {
@@ -44,31 +61,31 @@ function requiredTrim(message: string) {
 }
 
 function validateEmail({ value }: { value: string }): string | undefined {
-  if (!value?.trim()) return "El email es requerido";
-  if (!EMAIL_REGEX.test(value)) return "Email inválido";
+  if (!value?.trim()) return 'El email es requerido';
+  if (!EMAIL_REGEX.test(value)) return 'Email inválido';
   return undefined;
 }
 
 function validatePhone({ value }: { value: string }): string | undefined {
-  const trimmed = value?.trim() ?? "";
-  console.log("archivo de arriba");
-  if (!trimmed) return "El teléfono es requerido";
-  if (!/^[0-9]+$/.test(trimmed)) return "Solo se permiten dígitos";
-  if (trimmed.length < 8 || trimmed.length > 15) return "Número inválido";
+  const trimmed = value?.trim() ?? '';
+  console.log('archivo de arriba');
+  if (!trimmed) return 'El teléfono es requerido';
+  if (!/^[0-9]+$/.test(trimmed)) return 'Solo se permiten dígitos';
+  if (trimmed.length < 8 || trimmed.length > 15) return 'Número inválido';
   return undefined;
 }
 
 const v = {
-  firstName: requiredTrim("El nombre es requerido"),
-  lastName: requiredTrim("Los apellidos son requeridos"),
+  firstName: requiredTrim('El nombre es requerido'),
+  lastName: requiredTrim('Los apellidos son requeridos'),
   email: { onBlur: validateEmail, onSubmit: validateEmail },
   phone: { onBlur: validatePhone, onSubmit: validatePhone },
-  desiredPosition: requiredTrim("La posición deseada es requerida"),
+  desiredPosition: requiredTrim('La posición deseada es requerida'),
 };
 
 const PAGE_MAX_WIDTH = 900;
 const CARD_SHADOW =
-  "0 20px 25px -5px rgb(0 0 0 / 0.08), 0 8px 10px -6px rgb(0 0 0 / 0.06)";
+  '0 20px 25px -5px rgb(0 0 0 / 0.08), 0 8px 10px -6px rgb(0 0 0 / 0.06)';
 
 type ManualCandidateFormProps = { jobId: string };
 
@@ -85,22 +102,28 @@ export function ManualCandidateForm({ jobId }: ManualCandidateFormProps) {
   });
 
   /* Narrowing estable: coincide con uso real de cada campo como string controlado */
-  const Field: MinimalFormFieldComponent = form.Field as MinimalFormFieldComponent;
+  const Field: MinimalFormFieldComponent =
+    form.Field as MinimalFormFieldComponent;
 
   return (
     <Box
       sx={(theme) => ({
-        minHeight: "100vh",
+        minHeight: '100vh',
         py: { xs: 3, md: 6 },
         px: { xs: 2, md: 3 },
         background: `linear-gradient(to bottom right, ${theme.palette.background.default}, ${alpha(theme.palette.primary.main, 0.08)})`,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
       })}
     >
       <Box
-        sx={{ width: "100%", maxWidth: PAGE_MAX_WIDTH, mb: 3, textAlign: "center" }}
+        sx={{
+          width: '100%',
+          maxWidth: PAGE_MAX_WIDTH,
+          mb: 3,
+          textAlign: 'center',
+        }}
       >
         <Typography variant="h2" sx={{ mb: 0.5 }}>
           Formulario de carga manual
@@ -112,12 +135,12 @@ export function ManualCandidateForm({ jobId }: ManualCandidateFormProps) {
 
       <Card
         sx={{
-          width: "100%",
+          width: '100%',
           maxWidth: PAGE_MAX_WIDTH,
           p: 0,
-          overflow: "hidden",
-          border: "1px solid",
-          borderColor: "divider",
+          overflow: 'hidden',
+          border: '1px solid',
+          borderColor: 'divider',
           boxShadow: CARD_SHADOW,
         }}
       >
@@ -130,10 +153,10 @@ export function ManualCandidateForm({ jobId }: ManualCandidateFormProps) {
         >
           <Box
             sx={{
-              display: "flex",
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "flex-start",
+              display: 'flex',
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'flex-start',
             }}
           >
             <Box sx={{ flex: 1, pr: 1 }}>
@@ -141,14 +164,18 @@ export function ManualCandidateForm({ jobId }: ManualCandidateFormProps) {
                 sx={{
                   fontSize: { xs: 22, sm: 24 },
                   fontWeight: 500,
-                  color: "primary.contrastText",
+                  color: 'primary.contrastText',
                   mb: 0.5,
                 }}
               >
                 Completa tu perfil
               </Typography>
               <Typography
-                sx={{ fontSize: 14, fontWeight: 400, color: "primary.contrastText" }}
+                sx={{
+                  fontSize: 14,
+                  fontWeight: 400,
+                  color: 'primary.contrastText',
+                }}
               >
                 Ingresa tu información profesional
               </Typography>
@@ -157,7 +184,7 @@ export function ManualCandidateForm({ jobId }: ManualCandidateFormProps) {
               component={Link}
               href={backHref}
               aria-label="Cerrar"
-              sx={{ color: "primary.contrastText", mt: -0.5 }}
+              sx={{ color: 'primary.contrastText', mt: -0.5 }}
             >
               <X size={20} aria-hidden />
             </IconButton>
@@ -174,8 +201,11 @@ export function ManualCandidateForm({ jobId }: ManualCandidateFormProps) {
           >
             <Box
               sx={{
-                display: "grid",
-                gridTemplateColumns: { xs: "1fr", md: "repeat(2, minmax(0, 1fr))" },
+                display: 'grid',
+                gridTemplateColumns: {
+                  xs: '1fr',
+                  md: 'repeat(2, minmax(0, 1fr))',
+                },
                 gap: 3,
                 mb: 3,
               }}
@@ -216,7 +246,12 @@ export function ManualCandidateForm({ jobId }: ManualCandidateFormProps) {
                 fieldType="tel"
                 autoComplete="tel"
               />
-              <ManualProfileFormField Field={Field} name="location" label="Ubicación" Icon={MapPin} />
+              <ManualProfileFormField
+                Field={Field}
+                name="location"
+                label="Ubicación"
+                Icon={MapPin}
+              />
               <ManualProfileFormField
                 Field={Field}
                 name="desiredPosition"
@@ -261,26 +296,34 @@ export function ManualCandidateForm({ jobId }: ManualCandidateFormProps) {
 
             <Box
               sx={{
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-                flexWrap: "wrap",
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
                 gap: 2,
               }}
             >
-              <Button variant="outlined" component={Link} href={backHref} sx={{ px: 3 }}>
+              <Button
+                variant="outlined"
+                component={Link}
+                href={backHref}
+                sx={{ px: 3 }}
+              >
                 Cancelar
               </Button>
 
-              <form.Subscribe
-                selector={(state) => [state.isSubmitting]}
-                children={([isSubmitting]) => (
-                  <Button type="submit" variant="contained" disabled={isSubmitting}>
+              <form.Subscribe selector={(state) => [state.isSubmitting]}>
+                {([isSubmitting]) => (
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    disabled={isSubmitting}
+                  >
                     Finalizar registro
                   </Button>
                 )}
-              />
+              </form.Subscribe>
             </Box>
           </form>
         </CardContent>
