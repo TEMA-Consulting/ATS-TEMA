@@ -1,12 +1,12 @@
-import type { ParsedCV } from "./parsing";
+import type { ParsedCV } from './parsing';
 
 export type CvParseStatus =
-  | "not_required"
-  | "pending"
-  | "processing"
-  | "done"
-  | "failed";
-export type RegistrationType = "specific" | "general";
+  | 'not_required'
+  | 'pending'
+  | 'processing'
+  | 'done'
+  | 'failed';
+export type RegistrationType = 'specific' | 'general';
 
 export interface Candidate {
   id: string;
