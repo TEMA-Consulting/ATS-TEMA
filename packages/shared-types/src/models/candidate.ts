@@ -1,12 +1,13 @@
-import type { ParsedCV } from "./parsing";
+import type { ParsedCV } from './parsing';
 
 export type CvParseStatus =
-  | "not_required"
-  | "pending"
-  | "processing"
-  | "done"
-  | "failed";
-export type RegistrationType = "specific" | "general";
+  | 'not_required'
+  | 'pending'
+  | 'processing'
+  | 'done'
+  | 'failed';
+export type RegistrationType = 'specific' | 'general';
+export type RegistrationSource = 'manual' | 'cv_upload';
 
 export interface Candidate {
   id: string;
@@ -18,7 +19,7 @@ export interface Candidate {
   parsedData?: ParsedCV;
   createdAt: Date;
   updatedAt: Date;
-
+  registrationSource: RegistrationSource;
   registrationType: RegistrationType;
   cvFileName?: string;
   linkedinUrl?: string;
