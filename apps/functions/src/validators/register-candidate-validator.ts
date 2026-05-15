@@ -1,97 +1,41 @@
-import type {
-  RegisterCandidatePayload,
-  RegisterCandidateResponse,
-} from "@ats/shared-types";
-
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-export class RegisterCandidateValidationError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "RegisterCandidateValidationError";
-  }
-}
+import type { RegisterCandidatePayload } from '@ats/shared-types';
+import { HttpsError } from 'firebase-functions/v2/https';
 
 export function validateRegisterCandidatePayload(
-  payload: unknown,
-): RegisterCandidatePayload {
-  if (!isObject(payload)) {
-    throw new RegisterCandidateValidationError(
-      "El payload de registerCandidate debe ser un objeto.",
+  payload: Partial<RegisterCandidatePayload>,
+): asserts payload is RegisterCandidatePayload {
+  if (!payload.jobId || payload.jobId.trim().length === 0) {
+    throw new HttpsError(
+      'invalid-argument',
+      'La posición asociada a la postulación es obligatoria.',
     );
   }
 
-  const fullName = normalizeRequiredString(payload.fullName, "fullName");
-  const email = normalizeEmail(payload.email);
-  const hasCv = normalizeRequiredBoolean(payload.hasCv, "hasCv");
-
-  return {
-    fullName,
-    email,
-    hasCv,
-    jobId: normalizeOptionalString(payload.jobId, "jobId"),
-  };
-}
-
-function isObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
-}
-
-function normalizeRequiredString(value: unknown, fieldName: string): string {
-  if (typeof value !== "string") {
-    throw new RegisterCandidateValidationError(
-      `El campo ${fieldName} es obligatorio y debe ser string.`,
+  if (!payload.firstName || payload.firstName.trim().length === 0) {
+    throw new HttpsError(
+      'invalid-argument',
+      'El nombre del candidato es obligatorio.',
     );
   }
 
-  const normalizedValue = value.trim();
-
-  if (!normalizedValue) {
-    throw new RegisterCandidateValidationError(
-      `El campo ${fieldName} es obligatorio.`,
+  if (!payload.lastName || payload.lastName.trim().length === 0) {
+    throw new HttpsError(
+      'invalid-argument',
+      'El apellido del candidato es obligatorio.',
     );
   }
 
-  return normalizedValue;
-}
-
-function normalizeOptionalString(
-  value: unknown,
-  fieldName: string,
-): string | undefined {
-  if (value === undefined || value === null) {
-    return undefined;
-  }
-
-  if (typeof value !== "string") {
-    throw new RegisterCandidateValidationError(
-      `El campo ${fieldName} debe ser string si se envia.`,
+  if (!payload.email || payload.email.trim().length === 0) {
+    throw new HttpsError(
+      'invalid-argument',
+      'El email del candidato es obligatorio.',
     );
   }
 
-  const normalizedValue = value.trim();
-
-  return normalizedValue || undefined;
-}
-
-function normalizeEmail(value: unknown): string {
-  const normalizedEmail = normalizeRequiredString(value, "email").toLowerCase();
-
-  if (!EMAIL_REGEX.test(normalizedEmail)) {
-    throw new RegisterCandidateValidationError(
-      "El campo email debe tener un formato valido.",
+  if (!payload.phone || payload.phone.trim().length === 0) {
+    throw new HttpsError(
+      'invalid-argument',
+      'El teléfono del candidato es obligatorio.',
     );
   }
-
-  return normalizedEmail;
-}
-
-function normalizeRequiredBoolean(value: unknown, fieldName: string): boolean {
-  if (typeof value !== "boolean") {
-    throw new RegisterCandidateValidationError(
-      `El campo ${fieldName} es obligatorio y debe ser boolean.`,
-    );
-  }
-
-  return value;
 }

@@ -1,13 +1,14 @@
 import type {
+  ApplicationStatus,
   CreateCandidateDTO,
   CvParseStatus,
   RegistrationType,
   RegisterCandidatePayload,
   RegisterCandidateResponse,
-  RegistrationSource,
 } from '@ats/shared-types';
 
 import { CandidatesRepository } from '../repositories/candidate-repository';
+import { ApplicationRegistrationService } from './application-registration-service';
 
 export class CandidateRegistrationConflictError extends Error {
   constructor(message: string) {
@@ -29,6 +30,7 @@ export class CandidateRegistrationServiceError extends Error {
 export class CandidateRegistrationService {
   constructor(
     private readonly candidatesRepository: CandidatesRepository = new CandidatesRepository(),
+    private readonly applicationRegistrationService: ApplicationRegistrationService = new ApplicationRegistrationService(),
   ) {}
 
   async registerCandidate(
@@ -47,11 +49,21 @@ export class CandidateRegistrationService {
       }
 
       const registrationType = this.resolveRegistrationType(payload.jobId);
-      const cvParseStatus = this.resolveCvParseStatus(payload.hasCv);
+      const cvParseStatus: CvParseStatus = 'not_required';
+
+      const fullName = `${payload.firstName.trim()} ${payload.lastName.trim()}`;
 
       const candidateData: CreateCandidateDTO = {
-        fullName: payload.fullName,
-        email: payload.email,
+        firstName: payload.firstName.trim(),
+        lastName: payload.lastName.trim(),
+        fullName,
+        email: payload.email.trim(),
+        phone: payload.phone.trim(),
+        location: payload.location?.trim(),
+        yearsOfExperience: payload.yearsOfExperience,
+        education: payload.education?.trim(),
+        technicalSkills: payload.technicalSkills ?? [],
+        professionalSummary: payload.professionalSummary?.trim(),
         registrationType,
         cvParseStatus,
         registrationSource: 'manual',
@@ -62,9 +74,20 @@ export class CandidateRegistrationService {
         candidateData,
       );
 
+      const applicationId =
+        await this.applicationRegistrationService.createApplicationForCandidate(
+          candidateId,
+          payload.jobId,
+          'manual',
+        );
+
+      const applicationStatus: ApplicationStatus = 'active';
+
       return {
         candidateId,
+        applicationId,
         cvParseStatus,
+        applicationStatus,
       };
     } catch (error) {
       if (error instanceof CandidateRegistrationConflictError) {
@@ -78,10 +101,7 @@ export class CandidateRegistrationService {
     }
   }
 
-  private resolveRegistrationType(jobId?: string): RegistrationType {
+  private resolveRegistrationType(jobId: string): RegistrationType {
     return jobId ? 'specific' : 'general';
-  }
-  private resolveCvParseStatus(hasCv: boolean): CvParseStatus {
-    return hasCv ? 'pending' : 'not_required';
   }
 }

@@ -1,13 +1,23 @@
-import { CvParseStatus } from "../models";
+import type { ApplicationStatus, CvParseStatus } from '../models';
 
 export interface RegisterCandidatePayload {
-  fullName: string;
+  jobId: string;
+
+  firstName: string;
+  lastName: string;
   email: string;
-  hasCv: boolean;
-  jobId?: string;
+  phone: string;
+
+  location?: string;
+  yearsOfExperience?: number;
+  education?: string;
+  technicalSkills?: string[];
+  professionalSummary?: string;
 }
 
 export interface RegisterCandidateResponse {
   candidateId: string;
+  applicationId: string;
   cvParseStatus: CvParseStatus;
+  applicationStatus: ApplicationStatus;
 }
