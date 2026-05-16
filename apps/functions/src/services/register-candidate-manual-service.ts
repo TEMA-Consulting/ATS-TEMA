@@ -51,11 +51,13 @@ export class CandidateRegistrationService {
       const registrationType = this.resolveRegistrationType(payload.jobId);
       const cvParseStatus: CvParseStatus = 'not_required';
 
-      const fullName = `${payload.firstName.trim()} ${payload.lastName.trim()}`;
+      const firstName = payload.firstName.trim();
+      const lastName = payload.lastName.trim();
+      const fullName = `${firstName} ${lastName}`;
 
       const candidateData: CreateCandidateDTO = {
-        firstName: payload.firstName.trim(),
-        lastName: payload.lastName.trim(),
+        firstName,
+        lastName,
         fullName,
         email: payload.email.trim(),
         phone: payload.phone.trim(),
@@ -64,9 +66,10 @@ export class CandidateRegistrationService {
         education: payload.education?.trim(),
         technicalSkills: payload.technicalSkills ?? [],
         professionalSummary: payload.professionalSummary?.trim(),
+        profileStatus: 'completed',
         registrationType,
-        cvParseStatus,
         registrationSource: 'manual',
+        cvParseStatus,
       };
 
       await this.candidatesRepository.createOrUpdateCandidate(

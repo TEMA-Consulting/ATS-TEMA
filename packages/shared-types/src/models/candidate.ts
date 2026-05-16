@@ -1,5 +1,3 @@
-import type { ParsedCV } from './parsing';
-
 export type CvParseStatus =
   | 'not_required'
   | 'pending'
@@ -10,14 +8,16 @@ export type CvParseStatus =
 export type RegistrationType = 'specific' | 'general';
 export type RegistrationSource = 'manual' | 'cv_upload';
 
+export type CandidateProfileStatus = 'draft' | 'completed';
+
 export interface Candidate {
   id: string;
 
   firstName?: string;
   lastName?: string;
-  fullName: string;
+  fullName?: string;
 
-  email: string;
+  email?: string;
   phone?: string;
   location?: string;
 
@@ -26,6 +26,7 @@ export interface Candidate {
   technicalSkills?: string[];
   professionalSummary?: string;
 
+  profileStatus: CandidateProfileStatus;
   registrationType: RegistrationType;
   registrationSource: RegistrationSource;
   cvParseStatus: CvParseStatus;
@@ -38,9 +39,9 @@ export interface Candidate {
 export interface CreateCandidateDTO {
   firstName?: string;
   lastName?: string;
-  fullName: string;
+  fullName?: string;
 
-  email: string;
+  email?: string;
   phone?: string;
   location?: string;
 
@@ -49,6 +50,7 @@ export interface CreateCandidateDTO {
   technicalSkills?: string[];
   professionalSummary?: string;
 
+  profileStatus: CandidateProfileStatus;
   registrationType: RegistrationType;
   registrationSource: RegistrationSource;
   cvParseStatus: CvParseStatus;

@@ -5,8 +5,8 @@ import type { RegisterCandidatePayload } from '@ats/shared-types';
 import {
   CandidateRegistrationConflictError,
   CandidateRegistrationService,
-} from '../services/register-candidate-service';
-import { validateRegisterCandidatePayload } from '../validators/register-candidate-validator';
+} from '../services/register-candidate-manual-service';
+import { validateRegisterCandidatePayload } from '../validators/register-candidate-manual-validator';
 
 const candidateRegistrationService = new CandidateRegistrationService();
 

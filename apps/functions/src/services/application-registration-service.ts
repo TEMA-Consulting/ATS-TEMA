@@ -53,11 +53,17 @@ export class ApplicationRegistrationService {
       const applicationData: CreateApplicationDTO = {
         jobId,
         candidateId,
-        candidateName: candidate.fullName ?? undefined,
-        candidateEmail: candidate.email ?? undefined,
         status: this.resolveInitialStatus(source),
         stage: this.resolveInitialStage(source),
       };
+
+      if (candidate.fullName) {
+        applicationData.candidateName = candidate.fullName;
+      }
+
+      if (candidate.email) {
+        applicationData.candidateEmail = candidate.email;
+      }
 
       return await this.applicationsRepository.create(applicationData);
     } catch (error) {
