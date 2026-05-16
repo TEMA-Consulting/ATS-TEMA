@@ -1,3 +1,5 @@
+import type { ParsedCV } from './parsing';
+
 export type CvParseStatus =
   | 'not_required'
   | 'pending'
