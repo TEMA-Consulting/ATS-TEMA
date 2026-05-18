@@ -4,5 +4,6 @@ export { listOpenJobs } from './callables/list-open-jobs';
 export { seedJobs } from './callables/seed-jobs';
 export { registerCandidate } from './callables/register-candidate-manual';
 export { registerCandidateCV } from './callables/register-candidate-cv';
+export { getApplicationsByJob } from './callables/get-applications-by-job';
 export { onCVUploaded } from './triggers/on-cv-uploaded';
 export { submitApplication } from './callables/submit-application';
