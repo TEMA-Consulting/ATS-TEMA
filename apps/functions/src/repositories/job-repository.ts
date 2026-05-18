@@ -23,6 +23,7 @@ export class JobsRepositoryError extends Error {
   }
 }
 
+
 export class JobsRepository {
   private readonly collection = db.collection(JOBS_COLLECTION);
 
