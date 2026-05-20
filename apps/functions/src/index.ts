@@ -1,4 +1,5 @@
 export { healthCheck } from './callables/health-check';
+export { createJob } from './callables/create-job';
 export { getJobDetail } from './callables/get-job-detail';
 export { listOpenJobs } from './callables/list-open-jobs';
 export { seedJobs } from './callables/seed-jobs';
