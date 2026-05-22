@@ -9,17 +9,17 @@ import {
   Snackbar,
   Typography,
 } from '@mui/material';
-import { ArrowLeft, BriefcaseBusiness } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { useState } from 'react';
-import JobForm from '@/features/jobs/components/JobForm';
-import { useCreateJob } from '@/features/jobs/hooks/useCreateJob';
+import PositionForm from '@/features/dashboard/positions/components/PositionForm';
+import { useCreatePosition } from '@/features/dashboard/positions/hooks/useCreatePosition';
 import { CreateJobDTO } from '@ats/shared-types';
 
 export default function CreateJobPage() {
   const router = useRouter();
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
-  const { mutate: createJob, isPending } = useCreateJob();
+  const { mutate: createJob, isPending } = useCreatePosition();
 
   const handleCreateJob = async (jobData: CreateJobDTO) => {
     createJob(jobData, {
@@ -79,21 +79,6 @@ export default function CreateJobPage() {
             alignItems: 'center',
           }}
         >
-          <Box
-            sx={{
-              width: 56,
-              height: 56,
-              borderRadius: '50%',
-              bgcolor: '#2563eb',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              mb: 2,
-              boxShadow: '0 8px 20px rgba(37,99,235,0.25)',
-            }}
-          >
-            <BriefcaseBusiness size={24} color="#ffffff" />
-          </Box>
 
           <Typography
             sx={{
@@ -116,7 +101,7 @@ export default function CreateJobPage() {
           </Typography>
         </Box>
 
-        <JobForm
+        <PositionForm
           onSubmit={handleCreateJob}
           isLoading={isPending}
           onCancel={() => router.push('/dashboard/positions')}
