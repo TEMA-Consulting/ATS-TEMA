@@ -1,6 +1,7 @@
 export { archiveJob } from './callables/archive-job';
 export { healthCheck } from './callables/health-check';
 export { createJob } from './callables/create-job';
+export { getInternalJobDetail } from './callables/get-internal-job-detail';
 export { getJobDetail } from './callables/get-job-detail';
 export { listOpenJobs } from './callables/list-open-jobs';
 export { seedJobs } from './callables/seed-jobs';
