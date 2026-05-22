@@ -1,3 +1,4 @@
+export { archiveJob } from './callables/archive-job';
 export { healthCheck } from './callables/health-check';
 export { createJob } from './callables/create-job';
 export { getJobDetail } from './callables/get-job-detail';
@@ -8,3 +9,4 @@ export { registerCandidateCV } from './callables/register-candidate-cv';
 export { getApplicationsByJob } from './callables/get-applications-by-job';
 export { onCVUploaded } from './triggers/on-cv-uploaded';
 export { submitApplication } from './callables/submit-application';
+export { updateJob } from './callables/update-job';
