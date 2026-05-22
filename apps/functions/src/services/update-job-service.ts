@@ -1,12 +1,12 @@
 import { FieldValue } from 'firebase-admin/firestore';
 
 import type {
-  ArchiveJobResponse,
   Job,
   JobStatus,
   UpdateJobDTO,
-  UpdateJobPayload,
-  UpdateJobResponse,
+  UpdatePositionPayload,
+  UpdatePositionResponse,
+  UpdatePositionStatusResponse,
 } from '@ats/shared-types';
 
 import { JobsRepository } from '../repositories/jobs-repository';
@@ -33,24 +33,22 @@ export class UpdateJobService {
     private readonly jobsRepository: JobsRepository = new JobsRepository(),
   ) {}
 
-  async updateJob(payload: UpdateJobPayload): Promise<UpdateJobResponse> {
+  async updatePosition(
+    payload: UpdatePositionPayload,
+  ): Promise<UpdatePositionResponse> {
     try {
-      const jobId = payload.jobId.trim();
+      const jobId = payload.id.trim();
       const job = await this.jobsRepository.findById(jobId);
 
       if (!job) {
         throw new JobUpdateNotFoundError(jobId);
       }
 
-      const nextStatus = payload.status ?? job.status;
-      const updateData = this.buildUpdateData(job, payload, nextStatus);
+      const updateData = this.buildUpdateData(payload);
 
       await this.jobsRepository.update(jobId, updateData);
 
-      return {
-        jobId,
-        status: nextStatus,
-      };
+      return { ok: true };
     } catch (error) {
       if (error instanceof JobUpdateNotFoundError) {
         throw error;
@@ -60,7 +58,10 @@ export class UpdateJobService {
     }
   }
 
-  async archiveJob(jobId: string): Promise<ArchiveJobResponse> {
+  async updatePositionStatus(
+    jobId: string,
+    status: JobStatus,
+  ): Promise<UpdatePositionStatusResponse> {
     try {
       const normalizedJobId = jobId.trim();
       const job = await this.jobsRepository.findById(normalizedJobId);
@@ -69,28 +70,50 @@ export class UpdateJobService {
         throw new JobUpdateNotFoundError(normalizedJobId);
       }
 
-      await this.jobsRepository.update(normalizedJobId, {
-        status: 'paused',
-      });
+      const updateData: UpdateJobDTO = { status };
 
-      return {
-        jobId: normalizedJobId,
-        status: 'paused',
-      };
+      if (job.status !== 'open' && status === 'open' && !job.publishedAt) {
+        updateData.publishedAt = new Date();
+      }
+
+      if (status === 'closed') {
+        updateData.closedAt = new Date();
+      }
+
+      if (job.status === 'closed' && status !== 'closed') {
+        updateData.closedAt = FieldValue.delete() as never;
+      }
+
+      await this.jobsRepository.update(normalizedJobId, updateData);
+
+      return { ok: true };
     } catch (error) {
       if (error instanceof JobUpdateNotFoundError) {
         throw error;
       }
 
-      throw new UpdateJobServiceError('No se pudo archivar la posición.', error);
+      throw new UpdateJobServiceError(
+        'No se pudo actualizar el estado de la posición.',
+        error,
+      );
     }
   }
 
-  private buildUpdateData(
-    job: Job,
-    payload: UpdateJobPayload,
-    nextStatus: JobStatus,
-  ): UpdateJobDTO {
+  async updateJob(
+    payload: UpdatePositionPayload & { status?: JobStatus },
+  ): Promise<UpdatePositionResponse> {
+    if (payload.status !== undefined) {
+      return this.updatePositionStatus(payload.id, payload.status);
+    }
+
+    return this.updatePosition(payload);
+  }
+
+  async archiveJob(jobId: string): Promise<UpdatePositionStatusResponse> {
+    return this.updatePositionStatus(jobId, 'paused');
+  }
+
+  private buildUpdateData(payload: UpdatePositionPayload): UpdateJobDTO {
     const updateData: UpdateJobDTO = {
       title: payload.title?.trim(),
       department: payload.department?.trim(),
@@ -99,6 +122,7 @@ export class UpdateJobService {
       city: payload.city?.trim(),
       description: payload.description?.trim(),
       observations: payload.observations?.trim(),
+      additionalCriteria: payload.additionalCriteria?.map((item) => item.trim()),
       responsabilities: payload.responsabilities?.map((item) => item.trim()),
       benefits: payload.benefits?.map((item) => item.trim()),
       skills: payload.skills?.map((skill) => ({
@@ -107,22 +131,7 @@ export class UpdateJobService {
         weight: skill.weight,
         type: skill.type,
       })),
-      status: nextStatus,
     };
-
-    if (payload.status !== undefined) {
-      if (job.status !== 'open' && nextStatus === 'open' && !job.publishedAt) {
-        updateData.publishedAt = new Date();
-      }
-
-      if (nextStatus === 'closed') {
-        updateData.closedAt = new Date();
-      }
-
-      if (job.status === 'closed' && nextStatus !== 'closed') {
-        updateData.closedAt = FieldValue.delete() as never;
-      }
-    }
 
     return Object.fromEntries(
       Object.entries(updateData).filter(([, value]) => value !== undefined),

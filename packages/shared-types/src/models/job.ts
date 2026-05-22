@@ -21,6 +21,7 @@ export interface Job {
   description: string;
   skills: Skill[];
   observations?: string;
+  additionalCriteria?: string[];
   salaryMin?: number;
   salaryMax?: number;
   currency?: string;

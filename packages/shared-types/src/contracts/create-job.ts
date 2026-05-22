@@ -9,6 +9,5 @@ export interface CreateJobPayload
 }
 
 export interface CreateJobResponse {
-  jobId: string;
-  status: JobStatus;
+  id: string;
 }

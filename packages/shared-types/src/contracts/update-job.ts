@@ -1,27 +1,25 @@
 import type { JobStatus, Skill, UpdateJobDTO } from '../models';
 
-export interface UpdateJobPayload
+export interface UpdatePositionPayload
   extends Partial<
     Omit<
       UpdateJobDTO,
       'status' | 'salaryMin' | 'salaryMax' | 'currency' | 'hiringManagerId'
     >
   > {
-  jobId: string;
-  status?: JobStatus;
+  id: string;
   skills?: Skill[];
 }
 
-export interface UpdateJobResponse {
-  jobId: string;
+export interface UpdatePositionResponse {
+  ok: true;
+}
+
+export interface UpdatePositionStatusPayload {
+  id: string;
   status: JobStatus;
 }
 
-export interface ArchiveJobPayload {
-  jobId: string;
-}
-
-export interface ArchiveJobResponse {
-  jobId: string;
-  status: 'paused';
+export interface UpdatePositionStatusResponse {
+  ok: true;
 }

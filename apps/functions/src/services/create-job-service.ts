@@ -47,18 +47,16 @@ export class CreateJobService {
           type: skill.type,
         })),
         observations: payload.observations?.trim(),
+        additionalCriteria: payload.additionalCriteria?.map((item) => item.trim()),
         status,
         responsabilities: payload.responsabilities.map((item) => item.trim()),
         benefits: payload.benefits.map((item) => item.trim()),
         hiringManagerId,
       };
 
-      const jobId = await this.jobsRepository.create(jobData);
+      const id = await this.jobsRepository.create(jobData);
 
-      return {
-        jobId,
-        status,
-      };
+      return { id };
     } catch (error) {
       throw new CreateJobServiceError('No se pudo crear la posición.', error);
     }

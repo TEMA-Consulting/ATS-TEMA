@@ -49,6 +49,13 @@ export function validateCreateJobPayload(
     );
   }
 
+  if (payload.additionalCriteria !== undefined) {
+    validateStringArray(
+      payload.additionalCriteria,
+      'Los criterios adicionales deben ser una lista de textos no vacíos.',
+    );
+  }
+
   if (
     payload.city !== undefined &&
     typeof payload.city !== 'string'
