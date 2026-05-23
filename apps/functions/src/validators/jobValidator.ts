@@ -1,6 +1,8 @@
 import { HttpsError } from 'firebase-functions/v2/https';
 
 import type {
+  CreateJobPayload,
+  GetInternalJobDetailPayload,
   JobStatus,
   Skill,
   SkillType,
@@ -11,36 +13,140 @@ import type {
 const VALID_JOB_STATUSES: JobStatus[] = ['draft', 'open', 'paused', 'closed'];
 const VALID_SKILL_TYPES: SkillType[] = ['mandatory', 'desirable'];
 
-export function validateUpdatePositionPayload(
-  payload: Partial<UpdatePositionPayload>,
-): asserts payload is UpdatePositionPayload {
-  validateRequiredString(payload.id, 'El campo id es requerido.');
+export function validateCreateJobPayload(
+  payload: Partial<CreateJobPayload>,
+): asserts payload is CreateJobPayload {
+  validateRequiredString(
+    payload.title,
+    'El título de la posición es obligatorio.',
+  );
+  validateRequiredString(
+    payload.department,
+    'El área de la posición es obligatoria.',
+  );
+  validateRequiredString(
+    payload.seniority,
+    'El seniority de la posición es obligatorio.',
+  );
+  validateRequiredString(
+    payload.location,
+    'La ubicación de la posición es obligatoria.',
+  );
+  validateRequiredString(
+    payload.description,
+    'La descripción de la posición es obligatoria.',
+  );
 
-  if (payload.title !== undefined) {
-    validateRequiredString(payload.title, 'El título de la posición es obligatorio.');
+  if (!Array.isArray(payload.skills) || payload.skills.length === 0) {
+    throw new HttpsError(
+      'invalid-argument',
+      'La posición debe tener al menos una skill configurada.',
+    );
   }
 
-  if (payload.department !== undefined) {
-    validateRequiredString(payload.department, 'El área de la posición es obligatoria.');
+  payload.skills.forEach(validateSkill);
+
+  if (!payload.skills.some((skill) => skill.type === 'mandatory')) {
+    throw new HttpsError(
+      'invalid-argument',
+      'La posición debe tener al menos una skill obligatoria.',
+    );
   }
 
-  if (payload.seniority !== undefined) {
-    validateRequiredString(payload.seniority, 'El seniority de la posición es obligatorio.');
+  validateStringArray(
+    payload.responsabilities,
+    'La posición debe tener al menos una responsabilidad.',
+  );
+  validateStringArray(
+    payload.benefits,
+    'La posición debe tener al menos un beneficio.',
+  );
+
+  if (
+    payload.observations !== undefined &&
+    typeof payload.observations !== 'string'
+  ) {
+    throw new HttpsError('invalid-argument', 'Las observaciones deben ser texto.');
   }
 
-  if (payload.location !== undefined) {
-    validateRequiredString(payload.location, 'La ubicación de la posición es obligatoria.');
-  }
-
-  if (payload.description !== undefined) {
-    validateRequiredString(payload.description, 'La descripción de la posición es obligatoria.');
+  if (payload.additionalCriteria !== undefined) {
+    validateStringArray(
+      payload.additionalCriteria,
+      'Los criterios adicionales deben ser una lista de textos no vacíos.',
+    );
   }
 
   if (payload.city !== undefined && typeof payload.city !== 'string') {
     throw new HttpsError('invalid-argument', 'La ciudad debe ser texto.');
   }
 
-  if (payload.observations !== undefined && typeof payload.observations !== 'string') {
+  if (payload.status !== undefined && !VALID_JOB_STATUSES.includes(payload.status)) {
+    throw new HttpsError(
+      'invalid-argument',
+      'El estado de la posición no es válido.',
+    );
+  }
+}
+
+export function validateGetInternalJobDetailPayload(
+  payload: Partial<GetInternalJobDetailPayload>,
+): asserts payload is GetInternalJobDetailPayload {
+  if (!payload.jobId || payload.jobId.trim().length === 0) {
+    throw new HttpsError(
+      'invalid-argument',
+      'El identificador de la posición (jobId) es obligatorio.',
+    );
+  }
+}
+
+export function validateUpdatePositionPayload(
+  payload: Partial<UpdatePositionPayload>,
+): asserts payload is UpdatePositionPayload {
+  validateRequiredString(payload.id, 'El campo id es requerido.');
+
+  if (payload.title !== undefined) {
+    validateRequiredString(
+      payload.title,
+      'El título de la posición es obligatorio.',
+    );
+  }
+
+  if (payload.department !== undefined) {
+    validateRequiredString(
+      payload.department,
+      'El área de la posición es obligatoria.',
+    );
+  }
+
+  if (payload.seniority !== undefined) {
+    validateRequiredString(
+      payload.seniority,
+      'El seniority de la posición es obligatorio.',
+    );
+  }
+
+  if (payload.location !== undefined) {
+    validateRequiredString(
+      payload.location,
+      'La ubicación de la posición es obligatoria.',
+    );
+  }
+
+  if (payload.description !== undefined) {
+    validateRequiredString(
+      payload.description,
+      'La descripción de la posición es obligatoria.',
+    );
+  }
+
+  if (payload.city !== undefined && typeof payload.city !== 'string') {
+    throw new HttpsError('invalid-argument', 'La ciudad debe ser texto.');
+  }
+
+  if (
+    payload.observations !== undefined &&
+    typeof payload.observations !== 'string'
+  ) {
     throw new HttpsError('invalid-argument', 'Las observaciones deben ser texto.');
   }
 
