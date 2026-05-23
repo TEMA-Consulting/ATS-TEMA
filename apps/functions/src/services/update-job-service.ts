@@ -10,6 +10,7 @@ import type {
 } from '@ats/shared-types';
 
 import { JobsRepository } from '../repositories/jobs-repository';
+import { toSlug } from '../core/slug';
 
 export class JobUpdateNotFoundError extends Error {
   constructor(jobId: string) {
@@ -116,6 +117,7 @@ export class UpdateJobService {
   private buildUpdateData(payload: UpdatePositionPayload): UpdateJobDTO {
     const updateData: UpdateJobDTO = {
       title: payload.title?.trim(),
+      slug: payload.title ? toSlug(payload.title) : undefined,
       department: payload.department?.trim(),
       seniority: payload.seniority?.trim(),
       location: payload.location,

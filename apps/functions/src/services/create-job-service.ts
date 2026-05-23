@@ -5,6 +5,7 @@ import type {
   JobStatus,
 } from '@ats/shared-types';
 
+import { toSlug } from '../core/slug';
 import { JobsRepository } from '../repositories/jobs-repository';
 
 export class CreateJobServiceError extends Error {
@@ -32,9 +33,11 @@ export class CreateJobService {
       const status: JobStatus = payload.status ?? 'draft';
       const hiringManagerId =
         recruiterId ?? CreateJobService.DEFAULT_HIRING_MANAGER_ID;
+      const normalizedTitle = payload.title.trim();
 
       const jobData: CreateJobDTO = {
-        title: payload.title.trim(),
+        title: normalizedTitle,
+        slug: toSlug(normalizedTitle),
         department: payload.department.trim(),
         seniority: payload.seniority.trim(),
         location: payload.location,
