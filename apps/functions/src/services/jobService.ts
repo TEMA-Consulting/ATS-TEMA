@@ -17,7 +17,7 @@ import type {
 } from '@ats/shared-types';
 
 import { toSlug } from '../core/slug';
-import { JobsRepository } from '../repositories/jobs-repository';
+import { JobsRepository } from '../repositories/jobsRepository';
 
 export class CreateJobServiceError extends Error {
   constructor(

@@ -28,7 +28,7 @@ import type {
   ApplicationStage,
   ApplicationWithCandidateDTO,
 } from '@ats/shared-types';
-import { STAGE_LABELS } from '../constants/stage-labels';
+import { STAGE_LABELS } from '../constants/stageLabels';
 import { useGetCandidatesByJob } from '../hooks/usePipeline';
 
 type Props = {

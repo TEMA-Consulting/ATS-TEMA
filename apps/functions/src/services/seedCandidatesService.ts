@@ -5,7 +5,7 @@ import type {
   CreateCandidateDTO,
 } from '@ats/shared-types';
 
-import { ApplicationsRepository } from '../repositories/application-repository';
+import { ApplicationsRepository } from '../repositories/applicationRepository';
 import { CandidatesRepository } from '../repositories/candidateRepository';
 
 type SeedCandidateDefinition = {

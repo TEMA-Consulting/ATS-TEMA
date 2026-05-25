@@ -32,14 +32,14 @@ const buildMockQuery = (docs: ReturnType<typeof makeFirestoreJob>[]) => {
   return query;
 };
 
-vi.mock('../../core/firebase-admin', () => ({
+vi.mock('../../core/firebaseAdmin', () => ({
   db: {
     collection: vi.fn(),
   },
 }));
 
-import { db } from '../../core/firebase-admin';
-import { JobsRepository } from '../jobs-repository';
+import { db } from '../../core/firebaseAdmin';
+import { JobsRepository } from '../jobsRepository';
 
 describe('JobsRepository.findWithFilters', () => {
   let repo: JobsRepository;

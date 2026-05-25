@@ -15,7 +15,7 @@ import {
   validateRegisterCandidatePayload,
   validateStartApplicationWithCVPayload,
 } from '../validators/candidateValidator';
-import { HttpAuthError, requireAuthenticatedUser } from '../core/http-auth';
+import { HttpAuthError, requireAuthenticatedUser } from '../core/httpAuth';
 
 const candidateRegistrationCVService = new CandidateRegistrationCVService();
 const candidateRegistrationService = new CandidateRegistrationService();

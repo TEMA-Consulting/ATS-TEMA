@@ -2,7 +2,7 @@ import { Timestamp } from 'firebase-admin/firestore';
 
 import type { Job } from '@ats/shared-types';
 
-import { db } from '../core/firebase-admin';
+import { db } from '../core/firebaseAdmin';
 
 const JOBS_COLLECTION = 'jobs';
 

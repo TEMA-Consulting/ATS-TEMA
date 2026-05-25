@@ -1,4 +1,4 @@
-import { auth } from './firebase-admin';
+import { auth } from './firebaseAdmin';
 
 export class HttpAuthError extends Error {
   constructor(message: string) {

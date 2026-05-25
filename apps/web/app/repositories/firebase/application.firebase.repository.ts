@@ -5,7 +5,7 @@ import type {
   UpdateApplicationStageResponse,
 } from '@ats/shared-types';
 
-import * as applicationsApi from '../../shared/api/applications-api';
+import * as applicationsApi from '../../shared/api/applicationsApi';
 import type { IApplicationRepository } from '../interfaces/application.repository';
 
 export class ApplicationFirebaseRepository implements IApplicationRepository {

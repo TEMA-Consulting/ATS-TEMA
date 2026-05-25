@@ -3,7 +3,7 @@ import type { JobLocation, JobStatus, Skill } from '@ats/shared-types';
 import {
   JobsRepository,
   type SeedJobInput,
-} from '../repositories/jobs-repository';
+} from '../repositories/jobsRepository';
 
 type SeedJobDefinition = {
   id: string;

@@ -4,7 +4,7 @@ import type {
   CreateApplicationDTO,
 } from '@ats/shared-types';
 
-import { ApplicationsRepository } from '../repositories/application-repository';
+import { ApplicationsRepository } from '../repositories/applicationRepository';
 import { CandidatesRepository } from '../repositories/candidateRepository';
 
 export type ApplicationRegistrationSource = 'manual' | 'cv_upload';

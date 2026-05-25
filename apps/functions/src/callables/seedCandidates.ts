@@ -1,7 +1,7 @@
 import { logger } from 'firebase-functions';
 import { HttpsError, onCall } from 'firebase-functions/v2/https';
 
-import { SeedCandidatesService } from '../services/seed-candidates-service';
+import { SeedCandidatesService } from '../services/seedCandidatesService';
 
 const seedCandidatesService = new SeedCandidatesService();
 

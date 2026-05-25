@@ -5,7 +5,7 @@ import type {
   UpdateApplicationStageResponse,
 } from '@ats/shared-types';
 
-import { ApplicationsRepository } from '../repositories/application-repository';
+import { ApplicationsRepository } from '../repositories/applicationRepository';
 
 export class ApplicationNotFoundError extends Error {
   constructor(applicationId: string) {

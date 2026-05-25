@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   validateUpdateApplicationStagePayload,
   UpdateApplicationValidationError,
-} from '../update-application-validator';
+} from '../updateApplicationValidator';
 
 describe('validateUpdateApplicationStagePayload', () => {
   it('no lanza cuando el payload es válido', () => {

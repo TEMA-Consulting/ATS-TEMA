@@ -3,16 +3,16 @@ import type {
   SubmitApplicationResponse,
 } from '@ats/shared-types';
 
-import { ApplicationsRepository } from '../repositories/application-repository';
+import { ApplicationsRepository } from '../repositories/applicationRepository';
 import { CandidatesRepository } from '../repositories/candidateRepository';
-import { JobsRepository } from '../repositories/job-repository';
+import { JobsRepository } from '../repositories/jobRepository';
 import {
   ApplicationAlreadyExistsError,
   CandidateNotFoundError,
   JobNotFoundError,
   JobNotOpenError,
   SubmitApplicationError,
-} from './submit-application-errors';
+} from './submitApplicationErrors';
 
 export class SubmitApplicationService {
   constructor(

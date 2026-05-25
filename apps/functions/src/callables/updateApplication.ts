@@ -3,12 +3,12 @@ import { onRequest } from 'firebase-functions/v2/https';
 
 import type { UpdateApplicationStagePayload } from '@ats/shared-types';
 
-import { HttpAuthError, requireAuthenticatedUser } from '../core/http-auth';
-import { validateUpdateApplicationStagePayload } from '../validators/update-application-validator';
+import { HttpAuthError, requireAuthenticatedUser } from '../core/httpAuth';
+import { validateUpdateApplicationStagePayload } from '../validators/updateApplicationValidator';
 import {
   UpdateApplicationStageService,
   ApplicationNotFoundError,
-} from '../services/update-application-service';
+} from '../services/updateApplicationService';
 
 const updateApplicationStageService = new UpdateApplicationStageService();
 

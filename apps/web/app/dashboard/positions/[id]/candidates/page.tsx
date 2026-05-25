@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import type { Job } from '@ats/shared-types';
 import CandidatePipelineRoute from '@/features/pipeline/components/CandidatePipelineRoute';
-import { getFunctionUrl } from '@/shared/lib/functions-url';
+import { getFunctionUrl } from '@/shared/lib/functionsUrl';
 
 type Props = {
   params: Promise<{ id: string }>;

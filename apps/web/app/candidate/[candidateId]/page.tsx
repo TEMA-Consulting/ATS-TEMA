@@ -7,7 +7,7 @@ import type { ApplicationWithCandidateDTO } from '@ats/shared-types';
 import { CandidateProfileView } from '@/features/candidate/components/CandidateProfileView';
 import { CANDIDATE_SESSION_KEY } from '@/features/pipeline/components/CandidatePipelineRoute';
 import type { CandidateMockProfile } from '@/features/candidate/mock/candidateMock';
-import { mapApplicationToProfile } from '@/features/candidate/utils/candidate-profile.utils';
+import { mapApplicationToProfile } from '@/features/candidate/utils/candidateProfile.utils';
 
 export default function CandidatePage() {
   const params = useParams();

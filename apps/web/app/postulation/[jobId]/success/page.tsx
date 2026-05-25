@@ -6,7 +6,7 @@ type Props = {
   searchParams: Promise<{ status?: string }>;
 };
 
-import { getFunctionUrl } from '../../../shared/lib/functions-url';
+import { getFunctionUrl } from '../../../shared/lib/functionsUrl';
 
 function getJobDetailUrl(jobId: string): string {
   return `${getFunctionUrl('getJobDetail')}?jobId=${jobId}`;

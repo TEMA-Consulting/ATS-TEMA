@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 
-import { listDepartments } from '@/shared/api/positions-api';
+import { listDepartments } from '@/shared/api/positionsApi';
 
 export function useDepartments() {
   return useQuery({
