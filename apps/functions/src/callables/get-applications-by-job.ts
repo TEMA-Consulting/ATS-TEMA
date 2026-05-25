@@ -1,33 +1,43 @@
-import { onRequest } from 'firebase-functions/v2/https';
 import { logger } from 'firebase-functions';
+import { onRequest } from 'firebase-functions/v2/https';
 
 import type { GetApplicationsByJobPayload } from '@ats/shared-types';
 
-import { validateGetApplicationsByJobPayload } from '../validators/get-applications-by-job-validator';
+import {
+  validateGetApplicationsByJobPayload,
+  GetApplicationsByJobValidationError,
+} from '../validators/get-applications-by-job-validator';
 import {
   GetApplicationsByJobService,
+  GetApplicationsByJobServiceError,
   JobNotFoundError,
 } from '../services/get-applications-by-job-service';
 import { HttpAuthError, requireAuthenticatedUser } from '../core/http-auth';
 
 const getApplicationsByJobService = new GetApplicationsByJobService();
 
-export const getApplicationsByJob = onRequest(async (req, res) => {
+export const getApplicationsByJob = onRequest(async (request, response) => {
   try {
-    if (req.method !== 'GET') {
-      res.status(405).json({ error: 'Method Not Allowed.' });
+    if (request.method !== 'GET') {
+      response.status(405).json({ error: 'Method Not Allowed.' });
       return;
     }
 
-    await requireAuthenticatedUser(req);
+    await requireAuthenticatedUser(request);
 
-    const { jobId, orderBy, orderDirection, limit } = req.query;
+    const { jobId, orderBy, orderDirection, limit } = request.query;
+
     const payload: Partial<GetApplicationsByJobPayload> = {
-      jobId: jobId as string,
-      orderBy: orderBy as GetApplicationsByJobPayload['orderBy'],
+      jobId: typeof jobId === 'string' ? jobId.trim() : undefined,
+      orderBy:
+        typeof orderBy === 'string'
+          ? (orderBy as GetApplicationsByJobPayload['orderBy'])
+          : undefined,
       orderDirection:
-        orderDirection as GetApplicationsByJobPayload['orderDirection'],
-      limit: limit ? Number(limit) : undefined,
+        typeof orderDirection === 'string'
+          ? (orderDirection as GetApplicationsByJobPayload['orderDirection'])
+          : undefined,
+      limit: limit !== undefined ? Number(limit) : undefined,
     };
 
     validateGetApplicationsByJobPayload(payload);
@@ -38,23 +48,31 @@ export const getApplicationsByJob = onRequest(async (req, res) => {
       options,
     );
 
-    res.status(200).json(result);
+    response.status(200).json(result);
   } catch (error) {
     if (error instanceof HttpAuthError) {
-      res.status(401).json({ error: error.message });
+      response.status(401).json({ error: error.message });
+      return;
+    }
+
+    if (error instanceof GetApplicationsByJobValidationError) {
+      response.status(400).json({ error: error.message });
       return;
     }
 
     if (error instanceof JobNotFoundError) {
-      res.status(404).json({ error: error.message });
+      response.status(404).json({ error: error.message });
       return;
     }
 
-    logger.error(
-      'Error inesperado obteniendo postulaciones por posición',
-      error,
-    );
-    res
+    if (error instanceof GetApplicationsByJobServiceError) {
+      logger.error('Error de negocio obteniendo postulaciones', error);
+      response.status(500).json({ error: error.message });
+      return;
+    }
+
+    logger.error('Error inesperado obteniendo postulaciones', error);
+    response
       .status(500)
       .json({ error: 'No se pudieron obtener las postulaciones.' });
   }
