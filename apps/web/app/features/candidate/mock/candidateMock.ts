@@ -1,3 +1,5 @@
+import type { Skill } from '@ats/shared-types';
+
 export interface CandidateExperience {
   role: string;
   company: string;
@@ -66,6 +68,7 @@ export interface CandidateStageEntry {
 
 export interface CandidateMockProfile {
   id: string;
+  applicationId: string;
   fullName: string;
   initials: string;
   title: string;
@@ -77,6 +80,7 @@ export interface CandidateMockProfile {
   fitScore: number;
   detectedSkills: string[];
   gapSkills: string[];
+  jobSkills: Skill[];
   strengths: string[];
   interviewNotes: CandidateInterviewNote[];
   stageHistory: CandidateStageEntry[];
@@ -87,6 +91,7 @@ export interface CandidateMockProfile {
 export const CANDIDATES_MOCK: CandidateMockProfile[] = [
   {
     id: 'c1',
+    applicationId: '',
     fullName: 'María García López',
     initials: 'MG',
     title: 'Senior Frontend Developer',
@@ -176,6 +181,7 @@ export const CANDIDATES_MOCK: CandidateMockProfile[] = [
       { key: 'contratado', status: 'pending' },
     ],
     currentStage: 'Entrevista 2 agendada',
+    jobSkills: [],
     cvMockUrl: null,
   },
 ];

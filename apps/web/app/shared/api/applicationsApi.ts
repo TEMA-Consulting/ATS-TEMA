@@ -1,11 +1,19 @@
 import type {
+  ApplicationDetailDTO,
+  GetApplicationDetailPayload,
+  GetApplicationsByCandidatePayload,
+  GetApplicationsByCandidateResponse,
   GetApplicationsByJobPayload,
   GetApplicationsByJobResponse,
+  GetCvSignedUrlPayload,
+  GetCvSignedUrlResponse,
+  GetStageHistoryResponse,
   UpdateApplicationStagePayload,
   UpdateApplicationStageResponse,
 } from '@ats/shared-types';
-
-import { getFunctionUrl } from '../lib/firebase';
+import { httpsCallable } from 'firebase/functions';
+import { getDownloadURL, ref } from 'firebase/storage';
+import { functions, getFunctionUrl, storage } from '../lib/firebase';
 import { getToken } from '../lib/auth';
 
 export async function getApplicationsByJob(
@@ -44,6 +52,51 @@ export async function updateApplicationStage(
   if (!res.ok) {
     const error = await res.json();
     throw new Error(error.error || 'Error al actualizar la postulación');
+  }
+  return res.json();
+}
+
+export async function getApplicationDetail(
+  applicationId: string,
+): Promise<ApplicationDetailDTO> {
+  const fn = httpsCallable<GetApplicationDetailPayload, ApplicationDetailDTO>(
+    functions,
+    'getApplicationDetail',
+  );
+  const result = await fn({ applicationId });
+  return result.data;
+}
+
+export async function getApplicationsByCandidate(
+  payload: GetApplicationsByCandidatePayload,
+): Promise<GetApplicationsByCandidateResponse> {
+  const fn = httpsCallable<
+    GetApplicationsByCandidatePayload,
+    GetApplicationsByCandidateResponse
+  >(functions, 'getApplicationsByCandidate');
+  const result = await fn(payload);
+  return result.data;
+}
+
+export async function getCvDownloadUrl(applicationId: string): Promise<string> {
+  const fn = httpsCallable<GetCvSignedUrlPayload, GetCvSignedUrlResponse>(
+    functions,
+    'getCvSignedUrl',
+  );
+  const result = await fn({ applicationId });
+  return getDownloadURL(ref(storage, result.data.cvStoragePath));
+}
+export async function getStageHistory(
+  applicationId: string,
+): Promise<GetStageHistoryResponse> {
+  const token = await getToken();
+  const params = new URLSearchParams({ applicationId });
+  const res = await fetch(`${getFunctionUrl('getStageHistory')}?${params}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.error || 'Error al obtener el historial de etapa');
   }
   return res.json();
 }

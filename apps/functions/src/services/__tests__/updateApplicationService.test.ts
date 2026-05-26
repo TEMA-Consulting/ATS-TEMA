@@ -5,6 +5,12 @@ import {
   ApplicationNotFoundError,
 } from '../updateApplicationService';
 
+vi.mock('../../core/firebase-admin', () => ({
+  auth: {
+    getUser: vi.fn().mockResolvedValue({ email: 'test@example.com' }),
+  },
+}));
+
 const makeApplication = (
   overrides: Partial<Application> = {},
 ): Application => ({
@@ -25,6 +31,7 @@ const mockRepo = {
   findByJobId: vi.fn(),
   findByCandidateAndJob: vi.fn(),
   create: vi.fn(),
+  addStageHistoryEntry: vi.fn(),
 };
 
 describe('UpdateApplicationStageService.updateStage', () => {
@@ -39,10 +46,13 @@ describe('UpdateApplicationStageService.updateStage', () => {
     mockRepo.findById.mockResolvedValue(makeApplication());
     mockRepo.update.mockResolvedValue(undefined);
 
-    const result = await service.updateStage({
-      applicationId: 'app-1',
-      stage: 'screening',
-    });
+    const result = await service.updateStage(
+      {
+        applicationId: 'app-1',
+        stage: 'screening',
+      },
+      'uid-test',
+    );
 
     expect(result).toEqual({ ok: true });
     expect(mockRepo.update).toHaveBeenCalledWith('app-1', {
@@ -55,7 +65,10 @@ describe('UpdateApplicationStageService.updateStage', () => {
     mockRepo.findById.mockResolvedValue(makeApplication());
     mockRepo.update.mockResolvedValue(undefined);
 
-    await service.updateStage({ applicationId: 'app-1', stage: 'hired' });
+    await service.updateStage(
+      { applicationId: 'app-1', stage: 'hired' },
+      'uid-test',
+    );
 
     expect(mockRepo.update).toHaveBeenCalledWith('app-1', {
       stage: 'hired',
@@ -67,11 +80,14 @@ describe('UpdateApplicationStageService.updateStage', () => {
     mockRepo.findById.mockResolvedValue(makeApplication());
     mockRepo.update.mockResolvedValue(undefined);
 
-    await service.updateStage({
-      applicationId: 'app-1',
-      stage: 'rejected',
-      rejectionReason: 'No cumple los requisitos técnicos',
-    });
+    await service.updateStage(
+      {
+        applicationId: 'app-1',
+        stage: 'rejected',
+        rejectionReason: 'No cumple los requisitos técnicos',
+      },
+      'uid-test',
+    );
 
     expect(mockRepo.update).toHaveBeenCalledWith('app-1', {
       stage: 'rejected',
@@ -84,7 +100,10 @@ describe('UpdateApplicationStageService.updateStage', () => {
     mockRepo.findById.mockResolvedValue(makeApplication());
     mockRepo.update.mockResolvedValue(undefined);
 
-    await service.updateStage({ applicationId: 'app-1', stage: 'withdrawn' });
+    await service.updateStage(
+      { applicationId: 'app-1', stage: 'withdrawn' },
+      'uid-test',
+    );
 
     expect(mockRepo.update).toHaveBeenCalledWith('app-1', {
       stage: 'withdrawn',
@@ -96,11 +115,14 @@ describe('UpdateApplicationStageService.updateStage', () => {
     mockRepo.findById.mockResolvedValue(makeApplication());
     mockRepo.update.mockResolvedValue(undefined);
 
-    await service.updateStage({
-      applicationId: 'app-1',
-      stage: 'cv_submitted',
-      notes: 'Buen perfil técnico',
-    });
+    await service.updateStage(
+      {
+        applicationId: 'app-1',
+        stage: 'cv_submitted',
+        notes: 'Buen perfil técnico',
+      },
+      'uid-test',
+    );
 
     expect(mockRepo.update).toHaveBeenCalledWith('app-1', {
       stage: 'cv_submitted',
@@ -113,7 +135,10 @@ describe('UpdateApplicationStageService.updateStage', () => {
     mockRepo.findById.mockResolvedValue(makeApplication());
     mockRepo.update.mockResolvedValue(undefined);
 
-    await service.updateStage({ applicationId: 'app-1', stage: 'screening' });
+    await service.updateStage(
+      { applicationId: 'app-1', stage: 'screening' },
+      'uid-test',
+    );
 
     const updateCall = mockRepo.update.mock.calls[0][1];
     expect(updateCall).not.toHaveProperty('rejectionReason');
@@ -123,11 +148,17 @@ describe('UpdateApplicationStageService.updateStage', () => {
     mockRepo.findById.mockResolvedValue(null);
 
     await expect(
-      service.updateStage({ applicationId: 'app-missing', stage: 'screening' }),
+      service.updateStage(
+        { applicationId: 'app-missing', stage: 'screening' },
+        'uid-test',
+      ),
     ).rejects.toThrow(ApplicationNotFoundError);
 
     await expect(
-      service.updateStage({ applicationId: 'app-missing', stage: 'screening' }),
+      service.updateStage(
+        { applicationId: 'app-missing', stage: 'screening' },
+        'uid-test',
+      ),
     ).rejects.toThrow('app-missing');
   });
 
@@ -135,7 +166,10 @@ describe('UpdateApplicationStageService.updateStage', () => {
     mockRepo.findById.mockRejectedValue(new Error('Firestore error'));
 
     await expect(
-      service.updateStage({ applicationId: 'app-1', stage: 'screening' }),
+      service.updateStage(
+        { applicationId: 'app-1', stage: 'screening' },
+        'uid-test',
+      ),
     ).rejects.toThrow();
   });
 
@@ -144,7 +178,10 @@ describe('UpdateApplicationStageService.updateStage', () => {
     mockRepo.update.mockRejectedValue(new Error('Firestore write error'));
 
     await expect(
-      service.updateStage({ applicationId: 'app-1', stage: 'screening' }),
+      service.updateStage(
+        { applicationId: 'app-1', stage: 'screening' },
+        'uid-test',
+      ),
     ).rejects.toThrow();
   });
 });

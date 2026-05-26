@@ -46,4 +46,4 @@ export function callFunction<TData, TResult>(name: string, data: TData) {
   return httpsCallable<TData, TResult>(functions, name)(data);
 }
 
-export { getFunctionUrl } from './functions-url';
+export { getFunctionUrl } from './functionsUrl';
