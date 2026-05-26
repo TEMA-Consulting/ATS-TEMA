@@ -1,7 +1,7 @@
 import type { GetStageHistoryResponse } from '@ats/shared-types';
 
-import { ApplicationsRepository } from '../repositories/application-repository';
-import { ApplicationNotFoundError } from './update-application-service';
+import { ApplicationsRepository } from '../repositories/applicationRepository';
+import { ApplicationNotFoundError } from './updateApplicationService';
 
 export class GetStageHistoryService {
   constructor(

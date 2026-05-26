@@ -6,13 +6,13 @@ import type { GetApplicationsByJobPayload } from '@ats/shared-types';
 import {
   validateGetApplicationsByJobPayload,
   GetApplicationsByJobValidationError,
-} from '../validators/get-applications-by-job-validator';
+} from '../validators/getApplicationsByJobValidator';
 import {
   GetApplicationsByJobService,
   GetApplicationsByJobServiceError,
   JobNotFoundError,
-} from '../services/get-applications-by-job-service';
-import { HttpAuthError, requireAuthenticatedUser } from '../core/http-auth';
+} from '../services/getApplicationsByJobService';
+import { HttpAuthError, requireAuthenticatedUser } from '../core/httpAuth';
 
 const getApplicationsByJobService = new GetApplicationsByJobService();
 

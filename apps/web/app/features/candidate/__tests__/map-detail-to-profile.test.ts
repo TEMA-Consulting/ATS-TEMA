@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import type { ApplicationDetailDTO } from '@ats/shared-types';
-import { mapDetailToProfile } from '../utils/candidate-profile.utils';
+import { mapDetailToProfile } from '../utils/candidateProfile.utils';
 
 const makeDetail = (
   overrides: Partial<ApplicationDetailDTO> = {},
@@ -102,16 +102,13 @@ describe('mapDetailToProfile', () => {
     const profile = mapDetailToProfile(
       makeDetail({
         skillMatchStats: {
-          porcentajeCobertura: 50,
-          skillsCubiertas: [],
-          skillsFaltantes: [
-            {
-              name: 'Node.js',
-              weight: 4,
-              type: 'mandatory',
-              yearsOfExperience: 1,
-            },
-          ],
+          scoreTotal: 50,
+          scoreMandatory: 50,
+          scoreDesirable: 0,
+          tieneTodosLosMandatorios: false,
+          skillsCoincidentes: [],
+          skillsFaltantes: [{ name: 'Node.js', weight: 4, type: 'mandatory' }],
+          actualizadoEn: new Date('2026-05-10'),
         },
       }),
     );

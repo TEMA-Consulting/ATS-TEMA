@@ -1,5 +1,5 @@
-import { ParsedEducation } from './parsed-education';
-import { ParsedExperience } from './parsed-experience';
+import { ParsedEducation } from './parsedEducation';
+import { ParsedExperience } from './parsedExperience';
 
 export interface ParsedCV {
   fullName?: string;

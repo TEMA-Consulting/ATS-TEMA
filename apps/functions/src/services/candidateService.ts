@@ -20,8 +20,8 @@ import type {
 } from '@ats/shared-types';
 
 import { CandidatesRepository } from '../repositories/candidateRepository';
-import { ApplicationRegistrationService } from './application-registration-service';
-import { ApplicationsRepository } from '../repositories/application-repository';
+import { ApplicationRegistrationService } from './applicationRegistrationService';
+import { ApplicationsRepository } from '../repositories/applicationRepository';
 
 export class CandidateRegistrationCVServiceError extends Error {
   constructor(

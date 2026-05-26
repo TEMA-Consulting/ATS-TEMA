@@ -9,7 +9,7 @@ import type {
 } from '@ats/shared-types';
 
 import { auth, storage } from '../../shared/lib/firebase';
-import * as candidatesApi from '../../shared/api/candidates-api';
+import * as candidatesApi from '../../shared/api/candidatesApi';
 import type { ICandidateRepository } from '../interfaces/candidate.repository';
 
 export class CandidateFirebaseRepository implements ICandidateRepository {

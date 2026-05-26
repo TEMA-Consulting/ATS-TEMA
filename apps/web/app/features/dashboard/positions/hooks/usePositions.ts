@@ -8,7 +8,7 @@ import type {
   ListPositionsResponse,
 } from '@ats/shared-types';
 
-import { listPositions } from '@/shared/api/positions-api';
+import { listPositions } from '@/shared/api/positionsApi';
 
 export type { ListPositionsOrderBy, ListPositionsOrderDir };
 

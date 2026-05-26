@@ -4,9 +4,9 @@ import type {
   ApplicationDetailCandidateDTO,
 } from '@ats/shared-types';
 
-import { ApplicationsRepository } from '../repositories/application-repository';
+import { ApplicationsRepository } from '../repositories/applicationRepository';
 import { CandidatesRepository } from '../repositories/candidateRepository';
-import { JobsRepository } from '../repositories/jobs-repository';
+import { JobsRepository } from '../repositories/jobRepository';
 
 // ─── Errores ──────────────────────────────────────────────────────────────────
 
@@ -100,6 +100,7 @@ export class GetApplicationDetailService {
       job: {
         id: application.jobId,
         title: job?.title ?? application.jobTitle ?? '',
+        skills: job?.skills ?? [],
       },
     };
   }

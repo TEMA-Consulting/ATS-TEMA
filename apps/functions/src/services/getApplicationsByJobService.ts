@@ -5,8 +5,8 @@ import type {
   QueryOptions,
 } from '@ats/shared-types';
 
-import { ApplicationsRepository } from '../repositories/application-repository';
-import { JobsRepository } from '../repositories/jobs-repository';
+import { ApplicationsRepository } from '../repositories/applicationRepository';
+import { JobsRepository } from '../repositories/jobsRepository';
 
 export class JobNotFoundError extends Error {
   constructor(jobId: string) {

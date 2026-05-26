@@ -7,10 +7,10 @@ import type { ApplicationWithCandidateDTO } from '@ats/shared-types';
 import { CandidateProfileView } from '@/features/candidate/components/CandidateProfileView';
 import { CANDIDATE_SESSION_KEY } from '@/features/pipeline/components/CandidatePipelineRoute';
 import type { CandidateMockProfile } from '@/features/candidate/mock/candidateMock';
-import { mapDetailToProfile } from '@/features/candidate/utils/candidate-profile.utils';
+import { mapDetailToProfile } from '@/features/candidate/utils/candidateProfile.utils';
 import { ref, getDownloadURL } from 'firebase/storage';
 import { storage } from '@/shared/lib/firebase';
-import { getApplicationDetail } from '@/shared/api/applications-api';
+import { getApplicationDetail } from '@/shared/api/applicationsApi';
 
 export default function CandidatePage() {
   const params = useParams();

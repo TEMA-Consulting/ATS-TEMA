@@ -1,40 +1,52 @@
-import { HttpsError, onCall } from 'firebase-functions/v2/https';
-import { ApplicationsRepository } from '../repositories/application-repository';
+import { logger } from 'firebase-functions';
+import { onRequest } from 'firebase-functions/v2/https';
+
+import type { GetCvSignedUrlPayload, GetCvSignedUrlResponse } from '@ats/shared-types';
+
+import { HttpAuthError, requireAuthenticatedUser } from '../core/httpAuth';
+import { ApplicationsRepository } from '../repositories/applicationRepository';
 import { CandidatesRepository } from '../repositories/candidateRepository';
-import type {
-  GetCvSignedUrlPayload,
-  GetCvSignedUrlResponse,
-} from '@ats/shared-types';
 
 const applicationsRepository = new ApplicationsRepository();
 const candidatesRepository = new CandidatesRepository();
 
-export const getCvSignedUrl = onCall(
-  async (request): Promise<GetCvSignedUrlResponse> => {
-    if (!request.auth) {
-      throw new HttpsError('unauthenticated', 'Autenticación requerida.');
+export const getCvSignedUrl = onRequest(async (request, response) => {
+  try {
+    if (request.method !== 'GET') {
+      response.status(405).json({ error: 'Method Not Allowed.' });
+      return;
     }
 
-    const payload = request.data as Partial<GetCvSignedUrlPayload>;
+    await requireAuthenticatedUser(request);
+
+    const payload = request.query as Partial<GetCvSignedUrlPayload>;
 
     if (!payload.applicationId?.trim()) {
-      throw new HttpsError('invalid-argument', 'applicationId es obligatorio.');
+      response.status(400).json({ error: 'applicationId es obligatorio.' });
+      return;
     }
 
-    const application = await applicationsRepository.findById(
-      payload.applicationId.trim(),
-    );
+    const application = await applicationsRepository.findById(payload.applicationId.trim());
     if (!application) {
-      throw new HttpsError('not-found', 'Postulación no encontrada.');
+      response.status(404).json({ error: 'Postulación no encontrada.' });
+      return;
     }
 
-    const candidate = await candidatesRepository.findById(
-      application.candidateId,
-    );
+    const candidate = await candidatesRepository.findById(application.candidateId);
     if (!candidate?.cvStoragePath) {
-      throw new HttpsError('not-found', 'Este candidato no tiene CV cargado.');
+      response.status(404).json({ error: 'Este candidato no tiene CV cargado.' });
+      return;
     }
 
-    return { cvStoragePath: candidate.cvStoragePath };
-  },
-);
+    const result: GetCvSignedUrlResponse = { cvStoragePath: candidate.cvStoragePath };
+    response.status(200).json(result);
+  } catch (error) {
+    if (error instanceof HttpAuthError) {
+      response.status(401).json({ error: error.message });
+      return;
+    }
+
+    logger.error('[getCvSignedUrl] Error obteniendo CV', error);
+    response.status(500).json({ error: 'No se pudo obtener el CV.' });
+  }
+});

@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Container, Typography } from '@mui/material';
 import PositionEditView from '@/features/dashboard/positions/components/PositionEditView';
-import { getFunctionUrl } from '@/shared/lib/functions-url';
+import { getFunctionUrl } from '@/shared/lib/functionsUrl';
 import type { Job } from '@ats/shared-types';
 
 type Props = {

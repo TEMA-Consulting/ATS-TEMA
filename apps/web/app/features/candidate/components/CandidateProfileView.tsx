@@ -39,7 +39,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { STAGE_LABELS, type CandidateMockProfile } from '../mock/candidateMock';
-import { STAGE_KEY_MAP } from '../utils/candidate-profile.utils';
+import { STAGE_KEY_MAP } from '../utils/candidateProfile.utils';
 import { useCandidateProfile } from '../hooks/useCandidateProfile';
 import { CandidateInfoCard } from './CandidateInfoCard';
 import { CvViewerModal } from './CvViewerModal';

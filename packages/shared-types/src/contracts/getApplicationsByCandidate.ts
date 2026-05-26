@@ -1,4 +1,4 @@
-import type { ApplicationWithCandidateDTO } from './get-applications-by-job';
+import type { ApplicationWithCandidateDTO } from './getApplicationsByJob';
 
 export interface GetApplicationsByCandidatePayload {
   candidateId: string;

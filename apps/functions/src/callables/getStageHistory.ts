@@ -1,10 +1,10 @@
 import { logger } from 'firebase-functions';
 import { onRequest } from 'firebase-functions/v2/https';
 
-import { HttpAuthError, requireAuthenticatedUser } from '../core/http-auth';
+import { HttpAuthError, requireAuthenticatedUser } from '../core/httpAuth';
 import { validateGetStageHistoryPayload } from '../validators/getStageHistoryValidator';
 import { GetStageHistoryService } from '../services/getStageHistoryService';
-import { ApplicationNotFoundError } from '../services/update-application-service';
+import { ApplicationNotFoundError } from '../services/updateApplicationService';
 
 const getStageHistoryService = new GetStageHistoryService();
 

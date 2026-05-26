@@ -11,7 +11,7 @@ import type {
   UpdatePositionStatusPayload,
 } from '@ats/shared-types';
 
-import { HttpAuthError, requireAuthenticatedUser } from '../core/http-auth';
+import { HttpAuthError, requireAuthenticatedUser } from '../core/httpAuth';
 import {
   CreateJobServiceError,
   GetInternalJobDetailServiceError,

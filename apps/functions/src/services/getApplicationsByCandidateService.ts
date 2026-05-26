@@ -4,7 +4,7 @@ import type {
   GetApplicationsByCandidateResponse,
 } from '@ats/shared-types';
 
-import { ApplicationsRepository } from '../repositories/application-repository';
+import { ApplicationsRepository } from '../repositories/applicationRepository';
 
 export class GetApplicationsByCandidateServiceError extends Error {
   constructor(

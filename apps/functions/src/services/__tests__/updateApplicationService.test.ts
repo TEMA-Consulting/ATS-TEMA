@@ -3,7 +3,7 @@ import type { Application } from '@ats/shared-types';
 import {
   UpdateApplicationStageService,
   ApplicationNotFoundError,
-} from '../update-application-service';
+} from '../updateApplicationService';
 
 vi.mock('../../core/firebase-admin', () => ({
   auth: {

@@ -1,4 +1,4 @@
-export { healthCheck } from './callables/health-check';
+export { healthCheck } from './callables/healthCheck';
 export {
   createJob,
   getInternalJobDetail,
@@ -10,14 +10,14 @@ export {
   updatePosition,
   updatePositionStatus,
 } from './callables/jobCallable';
-export { seedJobs } from './callables/seed-jobs';
-export { seedCandidates } from './callables/seed-candidates';
+export { seedJobs } from './callables/seedJobs';
+export { seedCandidates } from './callables/seedCandidates';
 export {
   registerCandidate,
   registerCandidateCV,
   confirmCandidateProfile,
 } from './callables/candidateCallables';
-export { getApplicationsByJob } from './callables/get-applications-by-job';
+export { getApplicationsByJob } from './callables/getApplicationsByJob';
 export { getApplicationsByCandidate } from './callables/getApplicationsByCandidate';
 export { getApplicationDetail } from './callables/getApplicationDetail';
 export {
@@ -27,5 +27,5 @@ export {
 export { getStageHistory } from './callables/getStageHistory';
 export { onCVUploaded } from './triggers/onCvUploaded';
 export { onApplicationCreated } from './triggers/onApplicationCreated';
-export { submitApplication } from './callables/submit-application';
+export { submitApplication } from './callables/submitApplication';
 export { getCvSignedUrl } from './callables/getCvSignedUrl';

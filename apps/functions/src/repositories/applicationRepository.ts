@@ -11,7 +11,7 @@ import type {
   UpdateApplicationDTO,
 } from '@ats/shared-types';
 
-import { db } from '../core/firebase-admin';
+import { db } from '../core/firebaseAdmin';
 
 const APPLICATIONS_COLLECTION = 'applications';
 

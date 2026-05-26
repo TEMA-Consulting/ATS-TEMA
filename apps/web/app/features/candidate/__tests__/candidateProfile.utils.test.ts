@@ -5,7 +5,7 @@ import {
   buildStageHistory,
   mapApplicationToProfile,
   STAGE_ORDER,
-} from '../utils/candidate-profile.utils';
+} from '../utils/candidateProfile.utils';
 
 const makeApplication = (
   overrides: Partial<ApplicationWithCandidateDTO> = {},

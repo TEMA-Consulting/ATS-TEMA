@@ -8,10 +8,10 @@ import {
   CandidateNotFoundError,
   JobNotFoundError,
   JobNotOpenError,
-} from '../services/submit-application-errors';
-import { SubmitApplicationService } from '../services/submit-application-service';
-import { validateSubmitApplicationPayload } from '../validators/submit-application-validator';
-import { HttpAuthError, requireAuthenticatedUser } from '../core/http-auth';
+} from '../services/submitApplicationErrors';
+import { SubmitApplicationService } from '../services/submitApplicationService';
+import { validateSubmitApplicationPayload } from '../validators/submitApplicationValidator';
+import { HttpAuthError, requireAuthenticatedUser } from '../core/httpAuth';
 
 const submitApplicationService = new SubmitApplicationService();
 

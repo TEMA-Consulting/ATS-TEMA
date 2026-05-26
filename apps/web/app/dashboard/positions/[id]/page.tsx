@@ -17,7 +17,7 @@ import {
   Users,
 } from 'lucide-react';
 import TogglePositionStatusButton from '../../../features/dashboard/positions/components/TogglePositionStatusButton';
-import { getFunctionUrl } from '@/shared/lib/functions-url';
+import { getFunctionUrl } from '@/shared/lib/functionsUrl';
 import type { Job } from '@ats/shared-types';
 
 async function fetchPosition(id: string): Promise<Job | null> {

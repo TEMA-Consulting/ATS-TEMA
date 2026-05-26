@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   validateGetApplicationsByJobPayload,
   GetApplicationsByJobValidationError,
-} from '../get-applications-by-job-validator';
+} from '../getApplicationsByJobValidator';
 
 describe('validateGetApplicationsByJobPayload', () => {
   it('no lanza cuando el payload mínimo es válido', () => {

@@ -5,8 +5,8 @@ import type {
   UpdateApplicationStageResponse,
 } from '@ats/shared-types';
 
-import { auth } from '../core/firebase-admin';
-import { ApplicationsRepository } from '../repositories/application-repository';
+import { auth } from '../core/firebaseAdmin';
+import { ApplicationsRepository } from '../repositories/applicationRepository';
 
 export class ApplicationNotFoundError extends Error {
   constructor(applicationId: string) {

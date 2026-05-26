@@ -12,8 +12,8 @@ import {
 import {
   getStageHistory,
   updateApplicationStage,
-} from '@/shared/api/applications-api';
-import { CANDIDATE_STAGE_TO_APP_STAGE } from '../utils/candidate-profile.utils';
+} from '@/shared/api/applicationsApi';
+import { CANDIDATE_STAGE_TO_APP_STAGE } from '../utils/candidateProfile.utils';
 import type { StageHistoryEntry } from '@ats/shared-types';
 
 type SnackbarState = { message: string; severity: 'success' | 'error' } | null;

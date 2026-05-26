@@ -1,15 +1,15 @@
 import { logger } from 'firebase-functions';
-import { HttpsError, onCall, onRequest } from 'firebase-functions/v2/https';
+import { onRequest } from 'firebase-functions/v2/https';
 
 import type { UpdateApplicationStagePayload } from '@ats/shared-types';
 
-import { HttpAuthError, requireAuthenticatedUser } from '../core/http-auth';
-import { ApplicationsRepository } from '../repositories/application-repository';
+import { HttpAuthError, requireAuthenticatedUser } from '../core/httpAuth';
+import { ApplicationsRepository } from '../repositories/applicationRepository';
 import {
   ApplicationNotFoundError,
   UpdateApplicationStageService,
-} from '../services/update-application-service';
-import { validateUpdateApplicationStagePayload } from '../validators/update-application-validator';
+} from '../services/updateApplicationService';
+import { validateUpdateApplicationStagePayload } from '../validators/updateApplicationValidator';
 
 interface UpdateApplicationPayload {
   applicationId: string;
@@ -19,35 +19,35 @@ interface UpdateApplicationPayload {
 const applicationsRepository = new ApplicationsRepository();
 const updateApplicationStageService = new UpdateApplicationStageService();
 
-export const updateApplication = onCall(async (request) => {
-  if (!request.auth) {
-    throw new HttpsError(
-      'unauthenticated',
-      'El usuario debe estar autenticado para actualizar una postulación.',
-    );
-  }
-
-  const payload = request.data as Partial<UpdateApplicationPayload>;
-
-  if (!payload.applicationId || payload.applicationId.trim().length === 0) {
-    throw new HttpsError(
-      'invalid-argument',
-      'El identificador de la postulación (applicationId) es obligatorio.',
-    );
-  }
-
-  if (!Array.isArray(payload.fortalezas)) {
-    throw new HttpsError(
-      'invalid-argument',
-      'El campo fortalezas debe ser un array de strings.',
-    );
-  }
-
-  const fortalezas = payload.fortalezas
-    .filter((f): f is string => typeof f === 'string' && f.trim().length > 0)
-    .map((f) => f.trim());
-
+export const updateApplication = onRequest(async (request, response) => {
   try {
+    if (request.method !== 'PATCH') {
+      response.status(405).json({ error: 'Method Not Allowed.' });
+      return;
+    }
+
+    await requireAuthenticatedUser(request);
+
+    const payload = request.body as Partial<UpdateApplicationPayload>;
+
+    if (!payload.applicationId || payload.applicationId.trim().length === 0) {
+      response
+        .status(400)
+        .json({ error: 'El campo applicationId es obligatorio.' });
+      return;
+    }
+
+    if (!Array.isArray(payload.fortalezas)) {
+      response
+        .status(400)
+        .json({ error: 'El campo fortalezas debe ser un array de strings.' });
+      return;
+    }
+
+    const fortalezas = payload.fortalezas
+      .filter((f): f is string => typeof f === 'string' && f.trim().length > 0)
+      .map((f) => f.trim());
+
     await applicationsRepository.update(payload.applicationId.trim(), {
       fortalezas,
     });
@@ -57,11 +57,17 @@ export const updateApplication = onCall(async (request) => {
       total: fortalezas.length,
     });
 
-    return { success: true, fortalezas };
+    response.status(200).json({ success: true, fortalezas });
   } catch (error) {
-    logger.error('[updateApplication] Error actualizando postulación', error);
+    if (error instanceof HttpAuthError) {
+      response.status(401).json({ error: error.message });
+      return;
+    }
 
-    throw new HttpsError('internal', 'No se pudo actualizar la postulación.');
+    logger.error('[updateApplication] Error actualizando postulación', error);
+    response
+      .status(500)
+      .json({ error: 'No se pudo actualizar la postulación.' });
   }
 });
 

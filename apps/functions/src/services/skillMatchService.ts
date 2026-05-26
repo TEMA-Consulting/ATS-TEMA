@@ -1,7 +1,7 @@
 // branch: fb-50-57
 import { FieldValue } from 'firebase-admin/firestore';
 
-import { db } from '../core/firebase-admin';
+import { db } from '../core/firebaseAdmin';
 import {
   buildCandidateSkillSet,
   computeWeightedMatch,
