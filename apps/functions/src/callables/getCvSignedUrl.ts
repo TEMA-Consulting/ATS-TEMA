@@ -1,6 +1,5 @@
 import { logger } from 'firebase-functions';
 import { onRequest } from 'firebase-functions/v2/https';
-
 import type {
   GetCvSignedUrlPayload,
   GetCvSignedUrlResponse,
@@ -29,17 +28,13 @@ export const getCvSignedUrl = onRequest(async (request, response) => {
       return;
     }
 
-    const application = await applicationsRepository.findById(
-      payload.applicationId.trim(),
-    );
+    const application = await applicationsRepository.findById(payload.applicationId.trim());
     if (!application) {
       response.status(404).json({ error: 'Postulación no encontrada.' });
       return;
     }
 
-    const candidate = await candidatesRepository.findById(
-      application.candidateId,
-    );
+    const candidate = await candidatesRepository.findById(application.candidateId);
     if (!candidate?.cvStoragePath) {
       response
         .status(404)
