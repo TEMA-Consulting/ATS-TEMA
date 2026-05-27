@@ -27,7 +27,7 @@ export const registerCandidateCV = onRequest(async (req, res) => {
       return;
     }
 
-    const candidateId = await requireAuthenticatedUser(req);
+    const { uid: candidateId } = await requireAuthenticatedUser(req);
 
     const payload = req.body as Partial<CandidatePostulationCVPayload>;
     validateStartApplicationWithCVPayload(payload);
@@ -57,7 +57,7 @@ export const registerCandidate = onRequest(async (req, res) => {
       return;
     }
 
-    const candidateId = await requireAuthenticatedUser(req);
+    const { uid: candidateId } = await requireAuthenticatedUser(req);
 
     const payload = req.body as Partial<CandidatePostulationPayload>;
     validateRegisterCandidatePayload(payload);
