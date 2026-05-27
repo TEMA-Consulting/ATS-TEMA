@@ -184,7 +184,11 @@ export default function EmailTemplatesListView() {
       <Stack spacing={5}>
         <Stack
           direction={{ xs: 'column', md: 'row' }}
-          sx={{ justifyContent: 'space-between', alignItems: { md: 'center' }, gap: 2 }}
+          sx={{
+            justifyContent: 'space-between',
+            alignItems: { md: 'center' },
+            gap: 2,
+          }}
         >
           <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
             <Box

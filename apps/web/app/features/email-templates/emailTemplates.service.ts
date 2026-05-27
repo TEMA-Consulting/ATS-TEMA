@@ -119,7 +119,10 @@ function readTemplates(): EmailTemplate[] {
 
 function writeTemplates(templates: EmailTemplate[]): void {
   if (!hasStorage()) return;
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(templates.map(toStored)));
+  window.localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify(templates.map(toStored)),
+  );
 }
 
 function createId(name: string): string {

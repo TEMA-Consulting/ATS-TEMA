@@ -17,14 +17,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import {
-  FileText,
-  Mail,
-  Send,
-  SquarePen,
-  Tags,
-  X,
-} from 'lucide-react';
+import { FileText, Mail, Send, SquarePen, Tags, X } from 'lucide-react';
 import type {
   CreateEmailTemplateDTO,
   EmailTemplate,
@@ -81,7 +74,12 @@ export default function EmailTemplateForm({
     onSubmit: async ({ value }) => {
       setSubmitError(null);
 
-      if (!value.name.trim() || !value.stage || !value.subject.trim() || !value.body.trim()) {
+      if (
+        !value.name.trim() ||
+        !value.stage ||
+        !value.subject.trim() ||
+        !value.body.trim()
+      ) {
         setSubmitError('Completá todos los campos requeridos.');
         return;
       }
@@ -98,7 +96,10 @@ export default function EmailTemplateForm({
 
   const characterCount = liveValues.body.length;
 
-  const title = mode === 'create' ? 'Nueva Plantilla de Email' : 'Editar Plantilla de Email';
+  const title =
+    mode === 'create'
+      ? 'Nueva Plantilla de Email'
+      : 'Editar Plantilla de Email';
   const subtitle =
     mode === 'create'
       ? 'Crea una plantilla para automatizar la comunicación con candidatos'
@@ -167,7 +168,9 @@ export default function EmailTemplateForm({
             }}
           >
             <Box sx={{ bgcolor: '#2563eb', color: '#ffffff', px: 4, py: 3 }}>
-              <Typography sx={{ color: '#ffffff', fontSize: 24, fontWeight: 500 }}>
+              <Typography
+                sx={{ color: '#ffffff', fontSize: 24, fontWeight: 500 }}
+              >
                 Información de la Plantilla
               </Typography>
             </Box>
@@ -176,8 +179,13 @@ export default function EmailTemplateForm({
               <form.Field name="name">
                 {(field) => (
                   <FormControl fullWidth>
-                    <FormLabel sx={{ mb: 1, color: '#334155', fontWeight: 500 }}>
-                      <Stack direction="row" sx={{ alignItems: 'center', gap: 1 }}>
+                    <FormLabel
+                      sx={{ mb: 1, color: '#334155', fontWeight: 500 }}
+                    >
+                      <Stack
+                        direction="row"
+                        sx={{ alignItems: 'center', gap: 1 }}
+                      >
                         <FileText size={16} />
                         Nombre de la Plantilla
                         <Box component="span" sx={{ color: '#ef4444' }}>
@@ -197,7 +205,9 @@ export default function EmailTemplateForm({
                           name: nextName,
                         }));
                       }}
-                      error={field.state.meta.isTouched && !field.state.value.trim()}
+                      error={
+                        field.state.meta.isTouched && !field.state.value.trim()
+                      }
                       helperText={
                         field.state.meta.isTouched && !field.state.value.trim()
                           ? requiredMessage
@@ -212,8 +222,13 @@ export default function EmailTemplateForm({
               <form.Field name="stage">
                 {(field) => (
                   <FormControl fullWidth>
-                    <FormLabel sx={{ mb: 1, color: '#334155', fontWeight: 500 }}>
-                      <Stack direction="row" sx={{ alignItems: 'center', gap: 1 }}>
+                    <FormLabel
+                      sx={{ mb: 1, color: '#334155', fontWeight: 500 }}
+                    >
+                      <Stack
+                        direction="row"
+                        sx={{ alignItems: 'center', gap: 1 }}
+                      >
                         <Send size={16} />
                         Estadio de Postulación
                         <Box component="span" sx={{ color: '#ef4444' }}>
@@ -226,7 +241,8 @@ export default function EmailTemplateForm({
                       value={field.state.value}
                       onBlur={field.handleBlur}
                       onChange={(event) => {
-                        const nextStage = event.target.value as EmailTemplateStage;
+                        const nextStage = event.target
+                          .value as EmailTemplateStage;
                         field.handleChange(nextStage);
                         setLiveValues((currentValues) => ({
                           ...currentValues,
@@ -245,8 +261,8 @@ export default function EmailTemplateForm({
                       ))}
                     </Select>
                     <FormHelperText sx={{ ml: 0, color: '#64748b' }}>
-                      Esta plantilla se enviará automáticamente cuando un candidato
-                      alcance este estadio
+                      Esta plantilla se enviará automáticamente cuando un
+                      candidato alcance este estadio
                     </FormHelperText>
                   </FormControl>
                 )}
@@ -255,8 +271,13 @@ export default function EmailTemplateForm({
               <form.Field name="subject">
                 {(field) => (
                   <FormControl fullWidth>
-                    <FormLabel sx={{ mb: 1, color: '#334155', fontWeight: 500 }}>
-                      <Stack direction="row" sx={{ alignItems: 'center', gap: 1 }}>
+                    <FormLabel
+                      sx={{ mb: 1, color: '#334155', fontWeight: 500 }}
+                    >
+                      <Stack
+                        direction="row"
+                        sx={{ alignItems: 'center', gap: 1 }}
+                      >
                         <Mail size={16} />
                         Asunto del Email
                         <Box component="span" sx={{ color: '#ef4444' }}>
@@ -276,7 +297,9 @@ export default function EmailTemplateForm({
                           subject: nextSubject,
                         }));
                       }}
-                      error={field.state.meta.isTouched && !field.state.value.trim()}
+                      error={
+                        field.state.meta.isTouched && !field.state.value.trim()
+                      }
                       helperText={
                         field.state.meta.isTouched && !field.state.value.trim()
                           ? requiredMessage
@@ -297,7 +320,10 @@ export default function EmailTemplateForm({
                 }}
               >
                 <Stack spacing={2}>
-                  <Stack direction="row" sx={{ alignItems: 'center', gap: 1.5 }}>
+                  <Stack
+                    direction="row"
+                    sx={{ alignItems: 'center', gap: 1.5 }}
+                  >
                     <Tags size={18} color="#2563eb" />
                     <Box>
                       <Typography sx={{ color: '#004eea', fontWeight: 500 }}>
@@ -333,8 +359,13 @@ export default function EmailTemplateForm({
                   bodyFieldRef.current = field;
                   return (
                     <FormControl fullWidth>
-                      <FormLabel sx={{ mb: 1, color: '#334155', fontWeight: 500 }}>
-                        <Stack direction="row" sx={{ alignItems: 'center', gap: 1 }}>
+                      <FormLabel
+                        sx={{ mb: 1, color: '#334155', fontWeight: 500 }}
+                      >
+                        <Stack
+                          direction="row"
+                          sx={{ alignItems: 'center', gap: 1 }}
+                        >
                           <FileText size={16} />
                           Cuerpo del Mensaje
                           <Box component="span" sx={{ color: '#ef4444' }}>
@@ -358,9 +389,13 @@ export default function EmailTemplateForm({
                             body: nextBody,
                           }));
                         }}
-                        error={field.state.meta.isTouched && !field.state.value.trim()}
+                        error={
+                          field.state.meta.isTouched &&
+                          !field.state.value.trim()
+                        }
                         helperText={
-                          field.state.meta.isTouched && !field.state.value.trim()
+                          field.state.meta.isTouched &&
+                          !field.state.value.trim()
                             ? requiredMessage
                             : ''
                         }
@@ -377,39 +412,44 @@ export default function EmailTemplateForm({
           </Paper>
 
           <Paper
-              elevation={0}
-              sx={{
-                overflow: 'hidden',
-                borderRadius: '16px',
-                boxShadow: '0 16px 36px rgba(15, 23, 42, 0.08)',
-              }}
-            >
-              <Box sx={{ bgcolor: '#334155', color: '#ffffff', px: 4, py: 2.5 }}>
-                <Typography sx={{ color: '#ffffff', fontSize: 24, fontWeight: 500 }}>
-                  Vista Previa
+            elevation={0}
+            sx={{
+              overflow: 'hidden',
+              borderRadius: '16px',
+              boxShadow: '0 16px 36px rgba(15, 23, 42, 0.08)',
+            }}
+          >
+            <Box sx={{ bgcolor: '#334155', color: '#ffffff', px: 4, py: 2.5 }}>
+              <Typography
+                sx={{ color: '#ffffff', fontSize: 24, fontWeight: 500 }}
+              >
+                Vista Previa
+              </Typography>
+            </Box>
+            <Stack spacing={2.5} sx={{ p: 4, minHeight: 290 }}>
+              <Box>
+                <Typography sx={{ color: '#64748b', fontSize: 13 }}>
+                  De:
+                </Typography>
+                <Typography sx={{ color: '#0f172a' }}>
+                  Equipo de Recursos Humanos
                 </Typography>
               </Box>
-              <Stack spacing={2.5} sx={{ p: 4, minHeight: 290 }}>
-                <Box>
-                  <Typography sx={{ color: '#64748b', fontSize: 13 }}>De:</Typography>
-                  <Typography sx={{ color: '#0f172a' }}>
-                    Equipo de Recursos Humanos
-                  </Typography>
-                </Box>
-                <Box>
-                  <Typography sx={{ color: '#64748b', fontSize: 13 }}>
-                    Asunto:
-                  </Typography>
-                  <Typography sx={{ color: '#0f172a' }}>
-                    {liveValues.subject || 'Asunto del email'}
-                  </Typography>
-                </Box>
-                <Box sx={{ borderTop: '1px solid #e2e8f0', pt: 2 }}>
-                  <Typography sx={{ color: '#334155', lineHeight: 1.6 }}>
-                    {liveValues.body || 'El contenido del mensaje aparecerá aquí.'}
-                  </Typography>
-                </Box>
-              </Stack>
+              <Box>
+                <Typography sx={{ color: '#64748b', fontSize: 13 }}>
+                  Asunto:
+                </Typography>
+                <Typography sx={{ color: '#0f172a' }}>
+                  {liveValues.subject || 'Asunto del email'}
+                </Typography>
+              </Box>
+              <Box sx={{ borderTop: '1px solid #e2e8f0', pt: 2 }}>
+                <Typography sx={{ color: '#334155', lineHeight: 1.6 }}>
+                  {liveValues.body ||
+                    'El contenido del mensaje aparecerá aquí.'}
+                </Typography>
+              </Box>
+            </Stack>
           </Paper>
 
           {submitError && (
