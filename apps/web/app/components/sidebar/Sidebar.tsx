@@ -18,6 +18,8 @@ import {
   ChevronLeft,
   ChevronRight,
   LogOut,
+  Mail,
+  type LucideIcon,
 } from 'lucide-react';
 import type { EmployeeRole } from '@ats/shared-types';
 import { useAuth } from '../../shared/lib/authContext';
@@ -26,7 +28,12 @@ const SIDEBAR_WIDTH = 240;
 const SIDEBAR_COLLAPSED_WIDTH = 64;
 const STORAGE_KEY = 'ats-sidebar-collapsed';
 
-const NAV_ITEMS = [
+const NAV_ITEMS: Array<{
+  label: string;
+  href: string;
+  icon: LucideIcon;
+  allowedRoles?: EmployeeRole[];
+}> = [
   {
     label: 'Posiciones',
     href: '/dashboard/positions',
@@ -36,6 +43,12 @@ const NAV_ITEMS = [
     label: 'Candidatos',
     href: '/dashboard/candidates',
     icon: Users,
+  },
+  {
+    label: 'Plantillas',
+    href: '/dashboard/communication-templates',
+    icon: Mail,
+    allowedRoles: ['hr', 'hiring_manager'],
   },
 ];
 
@@ -64,6 +77,9 @@ export default function Sidebar() {
   };
 
   const width = collapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_WIDTH;
+  const visibleItems = NAV_ITEMS.filter(
+    (item) => !item.allowedRoles || (role && item.allowedRoles.includes(role)),
+  );
 
   return (
     <Box
@@ -139,7 +155,7 @@ export default function Sidebar() {
           px: 1,
         }}
       >
-        {NAV_ITEMS.map((item) => {
+        {visibleItems.map((item) => {
           const Icon = item.icon;
           const isActive = pathname.startsWith(item.href);
 

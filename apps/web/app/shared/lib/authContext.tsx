@@ -42,14 +42,53 @@ interface AuthContextValue {
 
 type DevRole = 'admin' | 'recruiter' | 'hiring_manager';
 
-const DEV_ACCOUNTS: Record<DevRole, { email: string; token: string }> = {
-  admin: { email: 'admin@tema.dev', token: 'dev-admin' },
-  recruiter: { email: 'recruiter@tema.dev', token: 'dev-recruiter' },
-  hiring_manager: { email: 'hiring@tema.dev', token: 'dev-hiring-manager' },
+const DEV_ACCOUNTS: Record<
+  DevRole,
+  { email: string; token: string; employeeRole: EmployeeRole }
+> = {
+  admin: { email: 'admin@tema.dev', token: 'dev-admin', employeeRole: 'admin' },
+  recruiter: {
+    email: 'recruiter@tema.dev',
+    token: 'dev-recruiter',
+    employeeRole: 'hr',
+  },
+  hiring_manager: {
+    email: 'hiring@tema.dev',
+    token: 'dev-hiring-manager',
+    employeeRole: 'hiring_manager',
+  },
 };
 const DEV_PASSWORD = 'pass123';
 
 const AuthContext = createContext<AuthContextValue | null>(null);
+
+function normalizeEmployeeRole(role: unknown): EmployeeRole | null {
+  if (role === 'recruiter') return 'hr';
+  if (
+    role === 'hr' ||
+    role === 'tech_lead' ||
+    role === 'hiring_manager' ||
+    role === 'admin'
+  ) {
+    return role;
+  }
+  return null;
+}
+
+function getDevEmployeeRole(userEmail: string | null): EmployeeRole | null {
+  if (typeof window !== 'undefined') {
+    const devToken = window.localStorage.getItem('ats-dev-token');
+    const accountByToken = Object.values(DEV_ACCOUNTS).find(
+      (account) => account.token === devToken,
+    );
+    if (accountByToken) return accountByToken.employeeRole;
+  }
+
+  const accountByEmail = Object.values(DEV_ACCOUNTS).find(
+    (account) => account.email === userEmail,
+  );
+  return accountByEmail?.employeeRole ?? null;
+}
 
 async function setSessionCookie(idToken: string): Promise<void> {
   await fetch('/api/auth/session', {
@@ -88,13 +127,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        const tokenResult = await firebaseUser.getIdTokenResult();
-        const claimedRole = tokenResult.claims['role'] as
-          | EmployeeRole
-          | undefined;
+        const tokenResult = await firebaseUser.getIdTokenResult(true);
+        const claimedRole = normalizeEmployeeRole(tokenResult.claims['role']);
+        const devRole = useEmulators
+          ? getDevEmployeeRole(firebaseUser.email)
+          : null;
+        const effectiveRole = claimedRole ?? devRole;
         setUser(firebaseUser);
-        setRole(claimedRole ?? null);
-        setIsPendingApproval(!claimedRole);
+        setRole(effectiveRole);
+        setIsPendingApproval(!effectiveRole);
       } else {
         setUser(null);
         setRole(null);
@@ -104,20 +145,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     return unsubscribe;
-  }, []);
+  }, [useEmulators]);
 
   const signInWithGoogle = useCallback(
     async (devRole: DevRole = 'recruiter') => {
       if (useEmulators) {
-        const { email, token } = DEV_ACCOUNTS[devRole];
+        const { email, token, employeeRole } = DEV_ACCOUNTS[devRole];
         const credential = await signInWithEmailAndPassword(
           auth,
           email,
           DEV_PASSWORD,
         );
         localStorage.setItem('ats-dev-token', token);
-        const idToken = await credential.user.getIdToken();
+        const idToken = await credential.user.getIdToken(true);
         await setSessionCookie(idToken);
+        setUser(credential.user);
+        setRole(employeeRole);
+        setIsPendingApproval(false);
         return;
       }
 
