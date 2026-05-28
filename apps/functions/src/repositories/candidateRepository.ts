@@ -1,10 +1,10 @@
-import * as admin from 'firebase-admin';
 import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 
 import type {
   Candidate,
   CreateCandidateDTO,
   CvParseStatus,
+  ParsedCandidateProfileData,
 } from '@ats/shared-types';
 
 import { db } from '../core/firebaseAdmin';
@@ -123,6 +123,96 @@ export class CandidatesRepository {
     }
   }
 
+  async markParsingProcessing(
+    candidateId: string,
+    cvStoragePath: string,
+  ): Promise<void> {
+    try {
+      await this.collection.doc(candidateId).set(
+        {
+          cvStoragePath,
+          cvParseStatus: 'processing' as CvParseStatus,
+          cvParseError: null,
+          parsedData: null,
+          updatedAt: FieldValue.serverTimestamp(),
+        },
+        { merge: true },
+      );
+    } catch (error) {
+      throw new CandidatesRepositoryError(
+        `No se pudo marcar el parsing como processing para ${candidateId}.`,
+        error,
+      );
+    }
+  }
+
+  async markParsingDone(
+    candidateId: string,
+    parsedData: ParsedCandidateProfileData,
+  ): Promise<void> {
+    const technicalSkills =
+      parsedData.technicalSkills ??
+      parsedData.hardSkills ??
+      parsedData.skills ??
+      [];
+    const fullName =
+      parsedData.fullName ??
+      [parsedData.firstName, parsedData.lastName].filter(Boolean).join(' ');
+
+    try {
+      await this.collection.doc(candidateId).set(
+        {
+          firstName: parsedData.firstName ?? null,
+          lastName: parsedData.lastName ?? null,
+          fullName: fullName || null,
+          email: parsedData.email ?? null,
+          phone: parsedData.phone ?? null,
+          location: parsedData.location ?? null,
+          yearsOfExperience: parsedData.yearsOfExperience ?? null,
+          education: parsedData.education ?? null,
+          professionalSummary:
+            parsedData.professionalSummary ?? parsedData.summary ?? null,
+          technicalSkills,
+          hardSkills: FieldValue.delete(),
+          softSkills: FieldValue.delete(),
+          languages: FieldValue.delete(),
+          cvParseStatus: 'done' as CvParseStatus,
+          cvParseError: null,
+          parsedData,
+          updatedAt: FieldValue.serverTimestamp(),
+        },
+        { merge: true },
+      );
+    } catch (error) {
+      throw new CandidatesRepositoryError(
+        `No se pudo marcar el parsing como done para ${candidateId}.`,
+        error,
+      );
+    }
+  }
+
+  async markParsingFailed(
+    candidateId: string,
+    errorMessage: string,
+  ): Promise<void> {
+    try {
+      await this.collection.doc(candidateId).set(
+        {
+          cvParseStatus: 'failed' as CvParseStatus,
+          cvParseError: errorMessage,
+          parsedData: null,
+          updatedAt: FieldValue.serverTimestamp(),
+        },
+        { merge: true },
+      );
+    } catch (error) {
+      throw new CandidatesRepositoryError(
+        `No se pudo marcar el parsing como failed para ${candidateId}.`,
+        error,
+      );
+    }
+  }
+
   async update(id: string, data: Partial<Candidate>): Promise<void> {
     const cleanData = JSON.parse(JSON.stringify(data)); // Evita inputs con undefined que rompen Firestore
     await db
@@ -130,6 +220,9 @@ export class CandidatesRepository {
       .doc(id)
       .update({
         ...cleanData,
+        hardSkills: FieldValue.delete(),
+        softSkills: FieldValue.delete(),
+        languages: FieldValue.delete(),
         updatedAt: FieldValue.serverTimestamp(),
       });
   }
@@ -140,5 +233,16 @@ export class CandidatesRepository {
       createdAt: candidate.createdAt.toDate(),
       updatedAt: candidate.updatedAt.toDate(),
     };
+  }
+
+  async updateCvParseSuccess(
+    candidateId: string,
+    parsedData: ParsedCandidateProfileData,
+  ): Promise<void> {
+    await this.markParsingDone(candidateId, parsedData);
+  }
+
+  async updateCvParseFailure(candidateId: string): Promise<void> {
+    await this.markParsingFailed(candidateId, 'Error interno al procesar CV');
   }
 }

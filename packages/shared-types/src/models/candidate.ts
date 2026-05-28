@@ -1,4 +1,6 @@
-import type { ParsedCV } from './parsing';
+import type { ParsedCandidateProfileData } from './parsing/parsedData';
+import type { ParsedEducation } from './parsing/parsedEducation';
+import type { ParsedExperience } from './parsing/parsedExperience';
 
 export type CvParseStatus =
   | 'not_required'
@@ -27,14 +29,18 @@ export interface Candidate {
   education?: string;
   technicalSkills?: string[];
   professionalSummary?: string;
+  parsedData?: ParsedCandidateProfileData | null;
+  parsedCv?: {
+    experience?: ParsedExperience[];
+    education?: ParsedEducation[];
+  };
 
   profileStatus: CandidateProfileStatus;
   registrationType: RegistrationType;
   registrationSource: RegistrationSource;
   cvParseStatus: CvParseStatus;
   cvStoragePath?: string | null;
-  /** Datos estructurados extraídos del CV. Disponible cuando cvParseStatus = 'done'. */ // branch: fb-50-57
-  parsedCv?: ParsedCV;
+  cvParseError?: string | null;
 
   createdAt: Date;
   updatedAt: Date;
@@ -53,6 +59,11 @@ export interface CreateCandidateDTO {
   education?: string;
   technicalSkills?: string[];
   professionalSummary?: string;
+  parsedData?: ParsedCandidateProfileData | null;
+  parsedCv?: {
+    experience?: ParsedExperience[];
+    education?: ParsedEducation[];
+  };
 
   profileStatus: CandidateProfileStatus;
   registrationType: RegistrationType;
