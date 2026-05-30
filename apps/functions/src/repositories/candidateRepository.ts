@@ -29,6 +29,10 @@ export class CandidatesRepositoryError extends Error {
 export class CandidatesRepository {
   private readonly collection = db.collection(CANDIDATES_COLLECTION);
 
+  createId(): string {
+    return this.collection.doc().id;
+  }
+
   async findById(candidateId: string): Promise<Candidate | null> {
     try {
       const snapshot = await this.collection.doc(candidateId).get();
@@ -66,6 +70,25 @@ export class CandidatesRepository {
     }
   }
 
+  async findManyByEmail(email: string): Promise<Candidate[]> {
+    try {
+      const snapshot = await this.collection.where('email', '==', email).get();
+
+      if (snapshot.empty) {
+        return [];
+      }
+
+      return snapshot.docs.map((doc) =>
+        this.mapToCandidate(doc.data() as FirestoreCandidate),
+      );
+    } catch (error) {
+      throw new CandidatesRepositoryError(
+        `No se pudieron buscar candidatos por email ${email}.`,
+        error,
+      );
+    }
+  }
+
   async createOrUpdateCandidate(
     candidateId: string,
     candidateData: CreateCandidateDTO,
@@ -74,11 +97,14 @@ export class CandidatesRepository {
       const candidateRef = this.collection.doc(candidateId);
       const existingSnapshot = await candidateRef.get();
       const now = FieldValue.serverTimestamp();
+      const cleanCandidateData = JSON.parse(
+        JSON.stringify(candidateData),
+      ) as CreateCandidateDTO;
 
       if (!existingSnapshot.exists) {
         await candidateRef.set({
           id: candidateId,
-          ...candidateData,
+          ...cleanCandidateData,
           createdAt: now,
           updatedAt: now,
         });
@@ -88,7 +114,7 @@ export class CandidatesRepository {
 
       await candidateRef.set(
         {
-          ...candidateData,
+          ...cleanCandidateData,
           updatedAt: now,
         },
         { merge: true },
