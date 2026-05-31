@@ -140,6 +140,36 @@ export class ApplicationsRepository {
     }
   }
 
+  async countByJobIds(jobIds: string[]): Promise<Record<string, number>> {
+    try {
+      const uniqueJobIds = [...new Set(jobIds.filter(Boolean))];
+      const counts: Record<string, number> = {};
+
+      if (uniqueJobIds.length === 0) {
+        return counts;
+      }
+
+      for (let index = 0; index < uniqueJobIds.length; index += 30) {
+        const batch = uniqueJobIds.slice(index, index + 30);
+        const snapshot = await this.collection
+          .where('jobId', 'in', batch)
+          .get();
+
+        snapshot.docs.forEach((doc) => {
+          const application = doc.data() as FirestoreApplication;
+          counts[application.jobId] = (counts[application.jobId] ?? 0) + 1;
+        });
+      }
+
+      return counts;
+    } catch (error) {
+      throw new ApplicationsRepositoryError(
+        'No se pudieron contar las postulaciones por posición.',
+        error,
+      );
+    }
+  }
+
   async create(applicationData: CreateApplicationDTO): Promise<string> {
     try {
       const applicationId = this.buildApplicationId(
