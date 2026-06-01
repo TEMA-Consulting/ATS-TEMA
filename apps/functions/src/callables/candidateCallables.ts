@@ -60,13 +60,14 @@ function setCorsHeaders(
   response: Parameters<Parameters<typeof onRequest>[0]>[1],
 ): void {
   response.set('Access-Control-Allow-Origin', '*');
-  response.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  response.set('Access-Control-Allow-Methods', 'GET, PATCH, POST, OPTIONS');
   response.set('Access-Control-Allow-Headers', 'Authorization, Content-Type');
 }
 
-function assertPostMethod(
+function assertMethod(
   request: Parameters<Parameters<typeof onRequest>[0]>[0],
   response: Parameters<Parameters<typeof onRequest>[0]>[1],
+  expectedMethod: 'GET' | 'PATCH' | 'POST',
 ): boolean {
   setCorsHeaders(response);
 
@@ -75,9 +76,9 @@ function assertPostMethod(
     return false;
   }
 
-  if (request.method !== 'POST') {
+  if (request.method !== expectedMethod) {
     response.status(405).json({
-      error: 'Method not allowed. Use POST.',
+      error: `Method not allowed. Use ${expectedMethod}.`,
       code: 'method-not-allowed',
     });
     return false;
@@ -100,7 +101,7 @@ function getPayload<T>(requestBody: unknown): Partial<T> {
 
 const candidateRegistrationCVService = new CandidateRegistrationCVService();
 export const registerCandidateCV = onRequest(async (request, response) => {
-  if (!assertPostMethod(request, response)) {
+  if (!assertMethod(request, response, 'POST')) {
     return;
   }
 
@@ -124,7 +125,7 @@ export const registerCandidateCV = onRequest(async (request, response) => {
 const candidateRegistrationService = new CandidateRegistrationService();
 
 export const registerCandidate = onRequest(async (request, response) => {
-  if (!assertPostMethod(request, response)) {
+  if (!assertMethod(request, response, 'POST')) {
     return;
   }
 
@@ -156,15 +157,19 @@ export const registerCandidate = onRequest(async (request, response) => {
 
 export const getCandidateProfileForConfirmation = onRequest(
   async (request, response) => {
-    if (!assertPostMethod(request, response)) {
+    if (!assertMethod(request, response, 'GET')) {
       return;
     }
 
     try {
       await requireAuthenticatedUser(request);
-      const payload = getPayload<GetCandidateProfileForConfirmationPayload>(
-        request.body,
-      );
+      const { candidateId, applicationId } = request.query;
+      const payload: Partial<GetCandidateProfileForConfirmationPayload> = {
+        candidateId:
+          typeof candidateId === 'string' ? candidateId.trim() : undefined,
+        applicationId:
+          typeof applicationId === 'string' ? applicationId.trim() : undefined,
+      };
       validateGetCandidateProfileForConfirmationPayload(payload);
 
       const result =
@@ -207,7 +212,7 @@ export const getCandidateProfileForConfirmation = onRequest(
 );
 
 export const confirmCandidateProfile = onRequest(async (request, response) => {
-  if (!assertPostMethod(request, response)) {
+  if (!assertMethod(request, response, 'PATCH')) {
     return;
   }
 
@@ -292,7 +297,7 @@ export const confirmCandidateProfile = onRequest(async (request, response) => {
 });
 
 export const discardCandidateDraft = onRequest(async (request, response) => {
-  if (!assertPostMethod(request, response)) {
+  if (!assertMethod(request, response, 'POST')) {
     return;
   }
 
