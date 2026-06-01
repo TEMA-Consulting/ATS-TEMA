@@ -14,7 +14,6 @@ import {
 } from '@mui/material';
 import {
   BriefcaseBusiness,
-  Users,
   Mail,
   ChevronLeft,
   ChevronRight,
@@ -38,11 +37,6 @@ const NAV_ITEMS: Array<{
       label: 'Posiciones',
       href: '/dashboard/positions',
       icon: BriefcaseBusiness,
-    },
-    {
-      label: 'Candidatos',
-      href: '/dashboard/candidates',
-      icon: Users,
     },
     {
       label: 'Plantillas',

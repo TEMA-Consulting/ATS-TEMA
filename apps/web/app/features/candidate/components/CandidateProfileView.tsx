@@ -32,6 +32,7 @@ import {
   ChevronDown,
   ChevronUp,
   Clock,
+  FileText,
   Info,
   MessageSquare,
   MoreVertical,
@@ -75,11 +76,11 @@ export function CandidateProfileView({ candidate }: CandidateProfileViewProps) {
       <Container maxWidth="xl">
         <Button
           component={Link}
-          href="/dashboard/candidates"
+          href="/dashboard/positions"
           startIcon={<ArrowLeft size={18} />}
           sx={{ color: 'text.secondary', mb: 3, textTransform: 'none' }}
         >
-          Volver a candidatos
+          Volver a posiciones
         </Button>
 
         <Box
@@ -459,6 +460,29 @@ export function CandidateProfileView({ candidate }: CandidateProfileViewProps) {
                 </Box>
               </Box>
             </Card>
+
+            {candidate.professionalSummary ? (
+              <Card>
+                <Box
+                  sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}
+                >
+                  <FileText size={16} color="#64748b" />
+                  <Typography
+                    variant="body2"
+                    sx={{ fontWeight: 600, color: 'text.secondary' }}
+                  >
+                    Resumen profesional
+                  </Typography>
+                </Box>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ lineHeight: 1.7, whiteSpace: 'pre-line' }}
+                >
+                  {candidate.professionalSummary}
+                </Typography>
+              </Card>
+            ) : null}
 
             <Card>
               <Box
