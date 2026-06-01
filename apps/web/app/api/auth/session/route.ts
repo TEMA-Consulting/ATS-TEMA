@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
 
     if (role) {
       response.cookies.set(ROLE_COOKIE, role, {
-        httpOnly: true,
+        httpOnly: false,
         secure: !useEmulators,
         sameSite: 'strict',
         maxAge: SESSION_EXPIRY_MS / 1000,
@@ -71,7 +71,7 @@ export async function DELETE() {
     path: '/',
   });
   response.cookies.set(ROLE_COOKIE, '', {
-    httpOnly: true,
+    httpOnly: false,
     secure: true,
     sameSite: 'strict',
     maxAge: 0,
