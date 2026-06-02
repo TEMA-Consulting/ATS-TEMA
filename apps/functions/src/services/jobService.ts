@@ -329,7 +329,10 @@ export class JobService {
         throw error;
       }
 
-      throw new UpdateJobServiceError('No se pudo eliminar la posición.', error);
+      throw new UpdateJobServiceError(
+        'No se pudo eliminar la posición.',
+        error,
+      );
     }
   }
 
