@@ -40,7 +40,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { STAGE_LABELS, type CandidateMockProfile } from '../mock/candidateMock';
-import { STAGE_KEY_MAP } from '../utils/candidateProfile.utils';
+import { getCandidateStageLabel } from '../utils/candidateProfile.utils';
 import { useCandidateProfile } from '../hooks/useCandidateProfile';
 import { CandidateInfoCard } from './CandidateInfoCard';
 import { CvViewerModal } from './CvViewerModal';
@@ -64,6 +64,9 @@ export function CandidateProfileView({ candidate }: CandidateProfileViewProps) {
     !profile.newNoteDate ||
     !profile.newNoteText ||
     Number.isNaN(new Date(profile.newNoteDate).getTime());
+  const isTerminalStage =
+    profile.currentStage === STAGE_LABELS.descartado ||
+    profile.currentStage === STAGE_LABELS.contratado;
 
   return (
     <Box
@@ -147,7 +150,7 @@ export function CandidateProfileView({ candidate }: CandidateProfileViewProps) {
               <Button
                 variant="contained"
                 onClick={() => profile.openInterviewModal('tech')}
-                disabled={profile.currentStage === STAGE_LABELS.descartado}
+                disabled={isTerminalStage}
                 sx={{ bgcolor: '#16a34a', '&:hover': { bgcolor: '#15803d' } }}
               >
                 Entrevista técnica
@@ -158,7 +161,7 @@ export function CandidateProfileView({ candidate }: CandidateProfileViewProps) {
               <Button
                 variant="outlined"
                 onClick={() => profile.openInterviewModal('hr')}
-                disabled={profile.currentStage === STAGE_LABELS.descartado}
+                disabled={isTerminalStage}
                 sx={{ textTransform: 'none' }}
               >
                 Entrevista RRHH
@@ -179,17 +182,14 @@ export function CandidateProfileView({ candidate }: CandidateProfileViewProps) {
             >
               <MenuItem
                 onClick={profile.openStageDialog}
-                disabled={
-                  profile.pendingStages.length === 0 ||
-                  profile.currentStage === STAGE_LABELS.descartado
-                }
+                disabled={profile.pendingStages.length === 0 || isTerminalStage}
               >
                 Cambiar etapa
               </MenuItem>
               <Divider />
               <MenuItem
                 onClick={profile.openRejectDialog}
-                disabled={profile.currentStage === STAGE_LABELS.descartado}
+                disabled={isTerminalStage}
                 sx={{ color: 'error.main' }}
               >
                 Rechazar candidato
@@ -304,10 +304,7 @@ export function CandidateProfileView({ candidate }: CandidateProfileViewProps) {
                                 lineHeight: 1.4,
                               }}
                             >
-                              {(() => {
-                                const key = STAGE_KEY_MAP[entry.stage];
-                                return key ? STAGE_LABELS[key] : entry.stage;
-                              })()}
+                              {getCandidateStageLabel(entry.stage)}
                             </Typography>
                             <Typography
                               variant="caption"
@@ -343,6 +340,18 @@ export function CandidateProfileView({ candidate }: CandidateProfileViewProps) {
                               }}
                             >
                               Motivo: {entry.rejectionReason}
+                            </Typography>
+                          )}
+                          {entry.notes && (
+                            <Typography
+                              sx={{
+                                fontSize: 11,
+                                color: '#94a3b8',
+                                lineHeight: 1.4,
+                                mt: 0.25,
+                              }}
+                            >
+                              Nota: {entry.notes}
                             </Typography>
                           )}
                         </Box>

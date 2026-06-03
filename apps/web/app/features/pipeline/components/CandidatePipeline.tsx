@@ -27,7 +27,11 @@ import type {
   ApplicationStage,
   ApplicationWithCandidateDTO,
 } from '@ats/shared-types';
-import { STAGE_LABELS } from '../constants/stageLabels';
+import {
+  getStageLabel,
+  isVisibleApplicationStage,
+  VISIBLE_STAGE_LABELS,
+} from '../constants/stageLabels';
 import { useGetCandidatesByJob } from '../hooks/usePipeline';
 import PaginationControls from '@/shared/components/PaginationControls';
 import { usePaginationParams } from '@/shared/lib/usePaginationParams';
@@ -71,11 +75,7 @@ function getStatusChipSx(stage: ApplicationStage) {
   if (stage === 'cv_submitted') {
     return { bgcolor: '#dbeafe', color: '#4f46e5' };
   }
-  if (
-    stage === 'screening' ||
-    stage === 'applied' ||
-    stage === 'profile_pending'
-  ) {
+  if (stage === 'screening' || stage === 'applied') {
     return { bgcolor: '#f3e8ff', color: '#9333ea' };
   }
   if (stage === 'hired' || stage === 'offer_sent') {
@@ -103,7 +103,7 @@ function compareValues(
   }
 
   if (sortField === 'stage') {
-    return STAGE_LABELS[left.stage].localeCompare(STAGE_LABELS[right.stage]);
+    return getStageLabel(left.stage).localeCompare(getStageLabel(right.stage));
   }
 
   return (left.candidateName ?? '').localeCompare(right.candidateName ?? '');
@@ -163,6 +163,11 @@ export default function CandidatePipeline({
     const normalizedSearch = searchTerm.trim().toLowerCase();
 
     return candidates
+      .filter(
+        (candidate) =>
+          candidate.status !== 'draft' &&
+          isVisibleApplicationStage(candidate.stage),
+      )
       .filter((candidate) => {
         const matchesSearch =
           !normalizedSearch ||
@@ -172,7 +177,7 @@ export default function CandidatePipeline({
 
         const matchesStatus =
           selectedStatus === ALL_STAGES ||
-          STAGE_LABELS[candidate.stage] === selectedStatus;
+          getStageLabel(candidate.stage) === selectedStatus;
 
         return matchesSearch && matchesStatus;
       })
@@ -207,7 +212,7 @@ export default function CandidatePipeline({
     setSortDirection(field === 'fitScore' ? 'desc' : 'asc');
   }
 
-  const stageOptions = [ALL_STAGES, ...Object.values(STAGE_LABELS)];
+  const stageOptions = [ALL_STAGES, ...Object.values(VISIBLE_STAGE_LABELS)];
 
   return (
     <Box
@@ -441,7 +446,7 @@ export default function CandidatePipeline({
                         </TableCell>
                         <TableCell>
                           <Chip
-                            label={STAGE_LABELS[candidate.stage]}
+                            label={getStageLabel(candidate.stage)}
                             size="small"
                             sx={{
                               ...getStatusChipSx(candidate.stage),
