@@ -1,7 +1,9 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import {
+  Alert,
   Table,
   TableBody,
   TableCell,
@@ -11,7 +13,13 @@ import {
   TableSortLabel,
   Paper,
   Box,
+  Button,
   Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   IconButton,
 } from '@mui/material';
 import {
@@ -28,6 +36,7 @@ import type {
   ListPositionsOrderDir,
 } from '../hooks/usePositions';
 import { useUpdatePositionStatus } from '../hooks/useUpdatePositionStatus';
+import { useDeletePosition } from '../hooks/useDeletePosition';
 import { getJobStatusStyle } from '@/shared/lib/jobStatus';
 
 type Props = {
@@ -44,6 +53,38 @@ export default function PositionsTable({
   onSort,
 }: Props) {
   const { mutate: updateStatus } = useUpdatePositionStatus();
+  const deletePositionMutation = useDeletePosition();
+  const [positionToDelete, setPositionToDelete] = useState<Job | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const isDeletingPosition = deletePositionMutation.isPending;
+
+  function handleCloseDeleteDialog() {
+    if (isDeletingPosition) return;
+    setPositionToDelete(null);
+    setDeleteError(null);
+  }
+
+  function handleConfirmDeletePosition() {
+    if (!positionToDelete) return;
+
+    setDeleteError(null);
+    deletePositionMutation.mutate(
+      { id: positionToDelete.id },
+      {
+        onSuccess: () => {
+          setPositionToDelete(null);
+        },
+        onError: (error) => {
+          setDeleteError(
+            error instanceof Error
+              ? error.message
+              : 'No se pudo eliminar la posicion.',
+          );
+        },
+      },
+    );
+  }
 
   function headerCell(field: ListPositionsOrderBy, label: string) {
     return (
@@ -146,7 +187,35 @@ export default function PositionsTable({
                     ? new Date(job.createdAt).toLocaleDateString('es-AR')
                     : '-'}
                 </TableCell>
-                <TableCell align="right">
+                <TableCell
+                  align="right"
+                  sx={{
+                    whiteSpace: 'nowrap',
+                    lineHeight: 0,
+                    '& a': {
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      verticalAlign: 'middle',
+                      lineHeight: 0,
+                    },
+                    '& .MuiIconButton-root': {
+                      width: 28,
+                      height: 28,
+                      p: 0,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      verticalAlign: 'middle',
+                    },
+                    '& svg': {
+                      display: 'block',
+                    },
+                    '& > * + *': {
+                      ml: 0.75,
+                    },
+                  }}
+                >
                   <Link
                     href={`/dashboard/positions/${job.id}`}
                     style={{ display: 'inline-flex' }}
@@ -183,7 +252,14 @@ export default function PositionsTable({
                       <ToggleLeft size={16} color={statusStyle.color} />
                     )}
                   </IconButton>
-                  <IconButton size="small">
+                  <IconButton
+                    size="small"
+                    title="Eliminar posicion"
+                    onClick={() => {
+                      setDeleteError(null);
+                      setPositionToDelete(job);
+                    }}
+                  >
                     <Trash2 size={16} />
                   </IconButton>
                 </TableCell>
@@ -192,6 +268,42 @@ export default function PositionsTable({
           })}
         </TableBody>
       </Table>
+      <Dialog
+        open={Boolean(positionToDelete)}
+        onClose={handleCloseDeleteDialog}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Eliminar posicion</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Esta accion eliminara la posicion
+            {positionToDelete ? ` "${positionToDelete.title}"` : ''}. No
+            aparecera en el dashboard ni en el portal de empleos.
+          </DialogContentText>
+          {deleteError ? (
+            <Alert severity="error" sx={{ mt: 2 }}>
+              {deleteError}
+            </Alert>
+          ) : null}
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button
+            onClick={handleCloseDeleteDialog}
+            disabled={isDeletingPosition}
+          >
+            Cancelar
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={handleConfirmDeletePosition}
+            disabled={isDeletingPosition}
+          >
+            {isDeletingPosition ? 'Eliminando...' : 'Eliminar'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </TableContainer>
   );
 }
