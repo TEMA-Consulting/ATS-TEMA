@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   Box,
@@ -29,6 +29,8 @@ import type {
 } from '@ats/shared-types';
 import { STAGE_LABELS } from '../constants/stageLabels';
 import { useGetCandidatesByJob } from '../hooks/usePipeline';
+import PaginationControls from '@/shared/components/PaginationControls';
+import { usePaginationParams } from '@/shared/lib/usePaginationParams';
 
 type Props = {
   jobId: string;
@@ -40,6 +42,7 @@ type SortField = 'candidateName' | 'fitScore' | 'stage' | 'updatedAt';
 type SortDirection = 'asc' | 'desc';
 
 const ALL_STAGES = 'Todos los estados';
+const CANDIDATES_PAGE_SIZE = 10;
 
 function formatDate(value?: Date | string): string {
   if (!value) return '-';
@@ -148,6 +151,7 @@ export default function CandidatePipeline({
   const [filterAnchor, setFilterAnchor] = useState<null | HTMLElement>(null);
   const [sortField, setSortField] = useState<SortField>('fitScore');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const { page, setPage } = usePaginationParams();
 
   const {
     data: candidates = [],
@@ -178,7 +182,22 @@ export default function CandidatePipeline({
       });
   }, [candidates, searchTerm, selectedStatus, sortDirection, sortField]);
 
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredCandidates.length / CANDIDATES_PAGE_SIZE),
+  );
+
+  const paginatedCandidates = useMemo(() => {
+    const start = (page - 1) * CANDIDATES_PAGE_SIZE;
+    return filteredCandidates.slice(start, start + CANDIDATES_PAGE_SIZE);
+  }, [filteredCandidates, page]);
+
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [page, setPage, totalPages]);
+
   function handleSort(field: SortField) {
+    setPage(1);
     if (field === sortField) {
       setSortDirection((current) => (current === 'asc' ? 'desc' : 'asc'));
       return;
@@ -232,7 +251,10 @@ export default function CandidatePipeline({
               fullWidth
               placeholder="Buscar por nombre o habilidades..."
               value={searchTerm}
-              onChange={(event) => setSearchTerm(event.target.value)}
+              onChange={(event) => {
+                setSearchTerm(event.target.value);
+                setPage(1);
+              }}
               slotProps={{
                 input: {
                   startAdornment: (
@@ -362,7 +384,7 @@ export default function CandidatePipeline({
               ) : null}
 
               {!isLoading
-                ? filteredCandidates.map((candidate) => {
+                ? paginatedCandidates.map((candidate) => {
                     const score = candidate.fitScore ?? 0;
                     return (
                       <TableRow
@@ -465,6 +487,16 @@ export default function CandidatePipeline({
             </TableBody>
           </Table>
         </TableContainer>
+
+        {!isLoading && !isError ? (
+          <PaginationControls
+            page={page}
+            pageSize={CANDIDATES_PAGE_SIZE}
+            totalItems={filteredCandidates.length}
+            totalPages={totalPages}
+            onPageChange={setPage}
+          />
+        ) : null}
       </Stack>
 
       <Menu
@@ -478,6 +510,7 @@ export default function CandidatePipeline({
             selected={option === selectedStatus}
             onClick={() => {
               setSelectedStatus(option);
+              setPage(1);
               setFilterAnchor(null);
             }}
           >
