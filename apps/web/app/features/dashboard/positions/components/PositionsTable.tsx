@@ -37,6 +37,15 @@ type Props = {
   onSort?: (field: ListPositionsOrderBy) => void;
 };
 
+const actionButtonSx = {
+  width: 32,
+  height: 32,
+  p: 0,
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+};
+
 export default function PositionsTable({
   jobs,
   orderBy,
@@ -146,46 +155,73 @@ export default function PositionsTable({
                     ? new Date(job.createdAt).toLocaleDateString('es-AR')
                     : '-'}
                 </TableCell>
-                <TableCell align="right">
-                  <Link
-                    href={`/dashboard/positions/${job.id}`}
-                    style={{ display: 'inline-flex' }}
+                <TableCell align="right" sx={{ minWidth: 148 }}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'flex-end',
+                      gap: 0.5,
+                    }}
                   >
-                    <IconButton size="small">
-                      <Eye size={16} />
+                    <Link
+                      href={`/dashboard/positions/${job.id}`}
+                      style={{ display: 'inline-flex', lineHeight: 0 }}
+                    >
+                      <IconButton
+                        size="small"
+                        aria-label={`Ver ${job.title}`}
+                        sx={actionButtonSx}
+                      >
+                        <Eye size={16} />
+                      </IconButton>
+                    </Link>
+                    <Link
+                      href={`/dashboard/positions/${job.id}/edit`}
+                      style={{ display: 'inline-flex', lineHeight: 0 }}
+                    >
+                      <IconButton
+                        size="small"
+                        aria-label={`Editar ${job.title}`}
+                        sx={actionButtonSx}
+                      >
+                        <Edit2 size={16} />
+                      </IconButton>
+                    </Link>
+                    <IconButton
+                      size="small"
+                      aria-label={
+                        job.status === 'open'
+                          ? `Cerrar ${job.title}`
+                          : `Abrir ${job.title}`
+                      }
+                      title={
+                        job.status === 'open'
+                          ? 'Cerrar posición'
+                          : 'Abrir posición'
+                      }
+                      onClick={() =>
+                        updateStatus({
+                          id: job.id,
+                          status: job.status === 'open' ? 'closed' : 'open',
+                        })
+                      }
+                      sx={actionButtonSx}
+                    >
+                      {job.status === 'open' ? (
+                        <ToggleRight size={16} color={statusStyle.color} />
+                      ) : (
+                        <ToggleLeft size={16} color={statusStyle.color} />
+                      )}
                     </IconButton>
-                  </Link>
-                  <Link
-                    href={`/dashboard/positions/${job.id}/edit`}
-                    style={{ display: 'inline-flex' }}
-                  >
-                    <IconButton size="small">
-                      <Edit2 size={16} />
+                    <IconButton
+                      size="small"
+                      aria-label={`Eliminar ${job.title}`}
+                      sx={actionButtonSx}
+                    >
+                      <Trash2 size={16} />
                     </IconButton>
-                  </Link>
-                  <IconButton
-                    size="small"
-                    title={
-                      job.status === 'open'
-                        ? 'Cerrar posición'
-                        : 'Abrir posición'
-                    }
-                    onClick={() =>
-                      updateStatus({
-                        id: job.id,
-                        status: job.status === 'open' ? 'closed' : 'open',
-                      })
-                    }
-                  >
-                    {job.status === 'open' ? (
-                      <ToggleRight size={16} color={statusStyle.color} />
-                    ) : (
-                      <ToggleLeft size={16} color={statusStyle.color} />
-                    )}
-                  </IconButton>
-                  <IconButton size="small">
-                    <Trash2 size={16} />
-                  </IconButton>
+                  </Box>
                 </TableCell>
               </TableRow>
             );
