@@ -108,12 +108,13 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+
+
   useEffect(() => {
     if (user && role) {
       router.replace('/dashboard/positions');
     }
   }, [user, role, router]);
-
   // Si ya tiene rol, redirigir al dashboard
   if (user && role) {
     return null;

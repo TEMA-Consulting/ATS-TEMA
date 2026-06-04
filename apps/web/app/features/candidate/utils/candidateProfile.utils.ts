@@ -140,16 +140,7 @@ export function mapApplicationToProfile(
     gapSkills: [],
     jobSkills: [],
     strengths: application.fitSummary ? [application.fitSummary] : [],
-    interviewNotes: application.notes
-      ? [
-          {
-            authorName: 'Reclutador',
-            date: new Date(application.updatedAt).toLocaleDateString('es-AR'),
-            rating: 0,
-            note: application.notes,
-          },
-        ]
-      : [],
+    interviewNotes: [],
     stageHistory: buildStageHistory(application.stage),
     currentStage: getCandidateStageLabel(application.stage),
     cvMockUrl: null,
@@ -184,16 +175,7 @@ export function mapDetailToProfile(
     gapSkills: skillMatchStats?.skillsFaltantes.map((s) => s.name) ?? [],
     jobSkills: detail.job.skills,
     strengths: detail.fitSummary ? [detail.fitSummary] : [],
-    interviewNotes: detail.notes
-      ? [
-          {
-            authorName: 'Reclutador',
-            date: new Date(detail.updatedAt).toLocaleDateString('es-AR'),
-            rating: 0,
-            note: detail.notes,
-          },
-        ]
-      : [],
+    interviewNotes: [],
     stageHistory: buildStageHistory(detail.stage),
     currentStage: getCandidateStageLabel(detail.stage),
     cvMockUrl: null,
