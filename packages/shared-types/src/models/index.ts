@@ -4,6 +4,7 @@ export * from './application';
 export * from './skillMatch';
 export * from './employee';
 export * from './emailTemplate';
+export * from './offer';
 export * from './parsing';
 export * from './interviewForm';
 export * from './candidacyNote';

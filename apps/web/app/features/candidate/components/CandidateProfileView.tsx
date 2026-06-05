@@ -46,6 +46,7 @@ import { CvViewerModal } from './CvViewerModal';
 import { InterviewModal } from './InterviewModal';
 import { InterviewFormsModal } from './InterviewFormsModal';
 import { useAuth } from '../../../shared/lib/authContext';
+import { OfferManagementCard } from './OfferManagementCard';
 import AppSnackbar from '@/shared/components/AppSnackbar';
 
 interface CandidateProfileViewProps {
@@ -60,6 +61,8 @@ export function CandidateProfileView({ candidate }: CandidateProfileViewProps) {
   const canDoHrInterview = role === 'hr' || role === 'admin';
   const canDoTechInterview =
     role === 'hiring_manager' || role === 'tech_lead' || role === 'admin';
+  const canManageOffer =
+    role === 'admin' || role === 'hr' || role === 'hiring_manager';
 
   const formatNoteDate = (iso: string) => {
     const parsed = new Date(iso);
@@ -510,6 +513,16 @@ export function CandidateProfileView({ candidate }: CandidateProfileViewProps) {
               </Card>
             ) : null}
 
+            {canManageOffer ? (
+              <OfferManagementCard
+                applicationId={candidate.applicationId}
+                disabled={isTerminalStage}
+                isMarkingHired={profile.isUpdatingStage}
+                onOfferSent={profile.handleOfferSent}
+                onMarkAsHired={profile.handleMarkAsHired}
+              />
+            ) : null}
+
             <Card>
               <Box
                 sx={{
@@ -576,9 +589,7 @@ export function CandidateProfileView({ candidate }: CandidateProfileViewProps) {
                 </Box>
               )}
 
-              {candidate.strengths.length > 0 && (
-                <Divider sx={{ mb: 2.5 }} />
-              )}
+              {candidate.strengths.length > 0 && <Divider sx={{ mb: 2.5 }} />}
 
               <Box
                 sx={{
@@ -590,7 +601,9 @@ export function CandidateProfileView({ candidate }: CandidateProfileViewProps) {
                 }}
               >
                 {profile.isLoadingNotes ? (
-                  <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+                  <Box
+                    sx={{ display: 'flex', justifyContent: 'center', py: 2 }}
+                  >
                     <CircularProgress size={24} />
                   </Box>
                 ) : profile.candidacyNotes.length === 0 ? (
@@ -770,9 +783,7 @@ export function CandidateProfileView({ candidate }: CandidateProfileViewProps) {
                   multiline
                   minRows={2}
                   maxRows={6}
-                  disabled={
-                    profile.isSavingNewNote || profile.isSavingEditNote
-                  }
+                  disabled={profile.isSavingNewNote || profile.isSavingEditNote}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
                       e.preventDefault();

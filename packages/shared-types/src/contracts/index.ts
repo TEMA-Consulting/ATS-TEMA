@@ -18,3 +18,4 @@ export * from './getInterviewForms';
 export * from './getCandidacyNotes';
 export * from './saveCandidacyNote';
 export * from './updateCandidacyNote';
+export * from './offer';
