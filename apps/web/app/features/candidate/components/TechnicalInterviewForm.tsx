@@ -17,7 +17,6 @@ import AppSnackbar from '@/shared/components/AppSnackbar';
 interface Props {
   applicationId: string;
   skills: Skill[];
-  candidateName: string;
   onClose: () => void;
   onSave?: () => void | Promise<void>;
 }
@@ -25,7 +24,6 @@ interface Props {
 export function TechnicalInterviewForm({
   applicationId,
   skills,
-  // candidateName,
   onClose,
   onSave,
 }: Props) {

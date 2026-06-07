@@ -33,15 +33,20 @@ import {
   Clock,
   FileText,
   Info,
+  Mail,
+  CalendarDays,
   MoreVertical,
   Send,
   Sparkles,
 } from 'lucide-react';
 import Link from 'next/link';
+import { STAGE_CONFIG } from '@ats/shared-types';
 import { STAGE_LABELS, type CandidateMockProfile } from '../mock/candidateMock';
 import { getCandidateStageLabel } from '../utils/candidateProfile.utils';
 import { useCandidateProfile } from '../hooks/useCandidateProfile';
 import { CandidateInfoCard } from './CandidateInfoCard';
+import { CommunicationHistoryCard } from './CommunicationHistoryCard';
+import { FailedCommunicationsCard } from './FailedCommunicationsCard';
 import { CvViewerModal } from './CvViewerModal';
 import { InterviewModal } from './InterviewModal';
 import { InterviewFormsModal } from './InterviewFormsModal';
@@ -306,8 +311,7 @@ export function CandidateProfileView({ candidate }: CandidateProfileViewProps) {
                           <Box
                             sx={{
                               display: 'flex',
-                              justifyContent: 'space-between',
-                              alignItems: 'baseline',
+                              alignItems: 'center',
                               gap: 0.5,
                             }}
                           >
@@ -326,28 +330,34 @@ export function CandidateProfileView({ candidate }: CandidateProfileViewProps) {
                             >
                               {getCandidateStageLabel(entry.stage)}
                             </Typography>
-                            <Typography
-                              variant="caption"
-                              sx={{
-                                flexShrink: 0,
-                                fontSize: 11,
-                                color: 'text.secondary',
-                              }}
-                            >
-                              {changedAt.toLocaleDateString('es-AR')}{' '}
-                              {changedAt.toLocaleTimeString('es-AR', {
-                                hour: '2-digit',
-                                minute: '2-digit',
-                              })}
-                            </Typography>
+                            {STAGE_CONFIG[entry.stage]?.transitionMode ===
+                            'on_calendar_event' ? (
+                              <CalendarDays
+                                size={12}
+                                color="#64748b"
+                                aria-label="Evento del calendario"
+                                style={{ flexShrink: 0 }}
+                              />
+                            ) : STAGE_CONFIG[entry.stage]
+                                ?.emailTemplateStage !== null ? (
+                              <Mail
+                                size={12}
+                                color="#64748b"
+                                aria-label="Notificación por email"
+                                style={{ flexShrink: 0 }}
+                              />
+                            ) : null}
                           </Box>
                           <Typography
-                            sx={{
-                              fontSize: 11,
-                              color: '#94a3b8',
-                              lineHeight: 1.4,
-                            }}
+                            variant="caption"
+                            sx={{ fontSize: 11, color: 'text.secondary' }}
                           >
+                            {changedAt.toLocaleDateString('es-AR')}{' '}
+                            {changedAt.toLocaleTimeString('es-AR', {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                            {' · '}
                             {entry.changedByEmail}
                           </Typography>
                           {entry.rejectionReason && (
@@ -810,6 +820,10 @@ export function CandidateProfileView({ candidate }: CandidateProfileViewProps) {
                 </IconButton>
               </Box>
             </Card>
+
+            <CommunicationHistoryCard candidateId={candidate.id} />
+
+            <FailedCommunicationsCard applicationId={candidate.applicationId} />
 
             <Box
               sx={{

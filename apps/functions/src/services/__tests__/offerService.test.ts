@@ -34,7 +34,7 @@ const makeApplication = (
   candidateId: 'cand-1',
   candidateName: 'Ana Demo',
   candidateEmail: 'ana@example.com',
-  stage: 'interview_2_done',
+  stage: 'hr_2_done',
   status: 'active',
   createdAt: new Date('2026-01-01T00:00:00.000Z'),
   updatedAt: new Date('2026-01-01T00:00:00.000Z'),

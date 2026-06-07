@@ -13,6 +13,7 @@ export * from './getStageHistory';
 export * from './registerCandidates';
 export * from './getCvSignedUrl';
 export * from './auth';
+export * from './emailLogs';
 export * from './saveInterviewForm';
 export * from './getInterviewForms';
 export * from './getCandidacyNotes';

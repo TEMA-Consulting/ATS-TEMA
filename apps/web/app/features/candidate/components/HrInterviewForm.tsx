@@ -13,16 +13,11 @@ import AppSnackbar from '@/shared/components/AppSnackbar';
 
 interface Props {
   applicationId: string;
-  candidateName: string;
   onClose: () => void;
   onSave?: () => void | Promise<void>;
 }
 
-export function HrInterviewForm({
-  /* candidateName, */ applicationId,
-  onClose,
-  onSave,
-}: Props) {
+export function HrInterviewForm({ applicationId, onClose, onSave }: Props) {
   const [communication, setCommunication] = useState<number>(0);
   const [teamwork, setTeamwork] = useState<number>(0);
   const [salaryExpectation, setSalaryExpectation] = useState('');

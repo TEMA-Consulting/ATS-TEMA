@@ -8,7 +8,10 @@ import {
   InterviewFormForbiddenError,
   InterviewFormsService,
 } from '../services/interviewFormsService';
-import { ApplicationNotFoundError } from '../services/updateApplicationService';
+import {
+  ApplicationNotFoundError,
+  ApplicationStageTransitionError,
+} from '../services/updateApplicationService';
 import {
   InterviewFormsValidationError,
   validateGetInterviewFormsPayload,
@@ -53,6 +56,11 @@ export const saveInterviewForm = onRequest(async (request, response) => {
 
     if (error instanceof InterviewFormForbiddenError) {
       response.status(403).json({ error: error.message });
+      return;
+    }
+
+    if (error instanceof ApplicationStageTransitionError) {
+      response.status(409).json({ error: error.message });
       return;
     }
 
