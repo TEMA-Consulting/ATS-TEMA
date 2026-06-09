@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 
 const SESSION_COOKIE = 'ats-session';
 const ROLE_COOKIE = 'ats-role';
-const INTERNAL_ROLES = new Set(['admin', 'hr', 'hiring_manager', 'tech_lead']);
+const INTERNAL_ROLES = new Set(['admin', 'hr', 'area_leader', 'tech_lead']);
 const INTERNAL_HOME = '/dashboard/positions';
 const CANDIDATE_PATHS = ['/', '/jobs', '/postulation'];
 
@@ -41,7 +41,11 @@ export function middleware(request: NextRequest) {
   }
 
   if (session && isInternalRole(role) && isCandidatePath(pathname)) {
-    return NextResponse.redirect(new URL(INTERNAL_HOME, request.url));
+    const target = new URL(INTERNAL_HOME, request.url);
+    // Preservar ?code= para callbacks OAuth (Gmail, Calendar)
+    const code = request.nextUrl.searchParams.get('code');
+    if (code) target.searchParams.set('code', code);
+    return NextResponse.redirect(target);
   }
 
   // No redirigir /login → dashboard aquí: el cliente valida Firebase y evita
