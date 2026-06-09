@@ -15,6 +15,7 @@ type FirestoreCandidacyNote = Omit<CandidacyNote, 'createdAt' | 'updatedAt'> & {
 export type CreateCandidacyNoteData = {
   applicationId: string;
   text: string;
+  source: CandidacyNote['source'];
   authorUid: string;
   authorName: string;
   authorRole: string;
@@ -143,8 +144,13 @@ export class CandidacyNotesRepository {
   }
 
   private mapToCandidacyNote(data: FirestoreCandidacyNote): CandidacyNote {
+    const source =
+      data.source ??
+      (data.text.startsWith('[Entrevista') ? 'interview' : 'manual');
+
     return {
       ...data,
+      source,
       createdAt: data.createdAt.toDate(),
       updatedAt: data.updatedAt.toDate(),
     };

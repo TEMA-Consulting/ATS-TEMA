@@ -76,7 +76,7 @@ export function validateSaveInterviewFormPayload(
 
     if (!hasAnswer && !hasRating) {
       throw new InterviewFormsValidationError(
-        `La pregunta ${index + 1} debe tener respuesta o calificación.`,
+        `La pregunta ${index + 1} debe tener respuesta.`,
       );
     }
 
