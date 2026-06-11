@@ -42,7 +42,7 @@ import {
 import Link from 'next/link';
 import { STAGE_CONFIG } from '@ats/shared-types';
 import { STAGE_LABELS, type CandidateMockProfile } from '../mock/candidateMock';
-import { getCandidateStageLabel } from '../utils/candidateProfile.utils';
+import { getCandidateStageLabel, isTerminalApplicationStage } from '../utils/candidateProfile.utils';
 import { useCandidateProfile } from '../hooks/useCandidateProfile';
 import { CandidateInfoCard } from './CandidateInfoCard';
 import { CommunicationHistoryCard } from './CommunicationHistoryCard';
@@ -80,9 +80,9 @@ export function CandidateProfileView({ candidate }: CandidateProfileViewProps) {
 
   const canEditNote = (authorUid: string) =>
     Boolean(callerUid && callerUid === authorUid) || role === 'admin';
-  const isTerminalStage =
-    profile.currentStage === STAGE_LABELS.descartado ||
-    profile.currentStage === STAGE_LABELS.contratado;
+  const isTerminalStage = isTerminalApplicationStage(
+    profile.currentApplicationStage,
+  );
 
   return (
     <Box
@@ -695,7 +695,9 @@ export function CandidateProfileView({ candidate }: CandidateProfileViewProps) {
                               </Typography>
                             </Box>
                           </Box>
-                          {canEditNote(note.authorUid) && !isEditing && (
+                          {canEditNote(note.authorUid) &&
+                            profile.canManageNotes &&
+                            !isEditing && (
                             <Button
                               size="small"
                               onClick={() => profile.startEditingNote(note)}
@@ -775,50 +777,63 @@ export function CandidateProfileView({ candidate }: CandidateProfileViewProps) {
                 )}
               </Box>
 
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'flex-end',
-                  gap: 1,
-                  pt: 1,
-                  borderTop: 1,
-                  borderColor: 'divider',
-                }}
-              >
-                <TextField
-                  placeholder="Escribí una nota sobre esta candidatura..."
-                  value={profile.newCommentText}
-                  onChange={(e) => profile.setNewCommentText(e.target.value)}
-                  fullWidth
-                  multiline
-                  minRows={2}
-                  maxRows={6}
-                  disabled={profile.isSavingNewNote || profile.isSavingEditNote}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-                      e.preventDefault();
-                      profile.handleSendComment();
-                    }
+              {profile.canManageNotes ? (
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'flex-end',
+                    gap: 1,
+                    pt: 1,
+                    borderTop: 1,
+                    borderColor: 'divider',
                   }}
-                />
-                <IconButton
-                  color="primary"
-                  onClick={profile.handleSendComment}
-                  disabled={
-                    !profile.newCommentText.trim() ||
-                    profile.isSavingNewNote ||
-                    profile.isSavingEditNote
-                  }
-                  aria-label="Enviar nota"
-                  sx={{ mb: 0.5 }}
                 >
-                  {profile.isSavingNewNote ? (
-                    <CircularProgress size={20} />
-                  ) : (
-                    <Send size={20} />
-                  )}
-                </IconButton>
-              </Box>
+                  <TextField
+                    placeholder="Escribí una nota sobre esta candidatura..."
+                    value={profile.newCommentText}
+                    onChange={(e) => profile.setNewCommentText(e.target.value)}
+                    fullWidth
+                    multiline
+                    minRows={2}
+                    maxRows={6}
+                    disabled={
+                      profile.isSavingNewNote || profile.isSavingEditNote
+                    }
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                        e.preventDefault();
+                        profile.handleSendComment();
+                      }
+                    }}
+                  />
+                  <IconButton
+                    color="primary"
+                    onClick={profile.handleSendComment}
+                    disabled={
+                      !profile.newCommentText.trim() ||
+                      profile.isSavingNewNote ||
+                      profile.isSavingEditNote
+                    }
+                    aria-label="Enviar nota"
+                    sx={{ mb: 0.5 }}
+                  >
+                    {profile.isSavingNewNote ? (
+                      <CircularProgress size={20} />
+                    ) : (
+                      <Send size={20} />
+                    )}
+                  </IconButton>
+                </Box>
+              ) : (
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ display: 'block', pt: 1, borderTop: 1, borderColor: 'divider' }}
+                >
+                  No se pueden agregar ni editar notas cuando el candidato está
+                  contratado o rechazado.
+                </Typography>
+              )}
             </Card>
 
             <CommunicationHistoryCard candidateId={candidate.id} />
@@ -874,6 +889,7 @@ export function CandidateProfileView({ candidate }: CandidateProfileViewProps) {
         onClose={() => profile.setInterviewModalOpen(false)}
         applicationId={candidate.applicationId}
         candidateName={candidate.fullName}
+        applicationStage={profile.currentApplicationStage}
         type={profile.interviewType}
         skills={candidate.jobSkills}
         onSave={() => profile.handleInterviewSave()}
@@ -927,7 +943,43 @@ export function CandidateProfileView({ candidate }: CandidateProfileViewProps) {
           </Button>
           <Button
             variant="contained"
-            onClick={profile.handleStageChange}
+            onClick={profile.requestStageChange}
+            disabled={!profile.selectedStageKey || profile.isUpdatingStage}
+          >
+            Continuar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={profile.stageConfirmDialogOpen}
+        onClose={() =>
+          !profile.isUpdatingStage && profile.setStageConfirmDialogOpen(false)
+        }
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          Estas seguro que queres confirmar el cambio de etapa?
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ color: 'text.primary' }}>
+            {candidate.fullName} avanza a{' '}
+            {profile.selectedStageKey
+              ? STAGE_LABELS[profile.selectedStageKey]
+              : ''}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, py: 2 }}>
+          <Button
+            onClick={profile.cancelStageConfirm}
+            disabled={profile.isUpdatingStage}
+          >
+            Cancelar
+          </Button>
+          <Button
+            variant="contained"
+            onClick={profile.confirmStageChange}
             disabled={!profile.selectedStageKey || profile.isUpdatingStage}
             startIcon={
               profile.isUpdatingStage ? (
@@ -935,7 +987,7 @@ export function CandidateProfileView({ candidate }: CandidateProfileViewProps) {
               ) : null
             }
           >
-            {profile.isUpdatingStage ? 'Actualizando...' : 'Confirmar cambio'}
+            {profile.isUpdatingStage ? 'Actualizando...' : 'Confirmar'}
           </Button>
         </DialogActions>
       </Dialog>

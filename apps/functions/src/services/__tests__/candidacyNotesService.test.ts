@@ -3,6 +3,7 @@ import type { Application, CandidacyNote } from '@ats/shared-types';
 import {
   CandidacyNoteForbiddenError,
   CandidacyNoteNotFoundError,
+  CandidacyNoteTerminalStageError,
   CandidacyNotesService,
 } from '../candidacyNotesService';
 import { ApplicationNotFoundError } from '../updateApplicationService';
@@ -81,6 +82,32 @@ describe('CandidacyNotesService.saveCandidacyNote', () => {
       ),
     ).rejects.toThrow(ApplicationNotFoundError);
   });
+
+  it('lanza CandidacyNoteTerminalStageError si el candidato está contratado', async () => {
+    mockAppsRepo.findById.mockResolvedValue(
+      makeApplication( ),
+    );
+
+    await expect(
+      service.saveCandidacyNote(
+        { applicationId: 'app-1', text: 'Nota' },
+        { uid: 'uid-hr', role: 'hr' },
+      ),
+    ).rejects.toThrow(CandidacyNoteTerminalStageError);
+  });
+
+  it('lanza CandidacyNoteTerminalStageError si el candidato está rechazado', async () => {
+    mockAppsRepo.findById.mockResolvedValue(
+      makeApplication(),
+    );
+
+    await expect(
+      service.saveCandidacyNote(
+        { applicationId: 'app-1', text: 'Nota' },
+        { uid: 'uid-hr', role: 'hr' },
+      ),
+    ).rejects.toThrow(CandidacyNoteTerminalStageError);
+  });
 });
 
 describe('CandidacyNotesService.updateCandidacyNote', () => {
@@ -145,6 +172,32 @@ describe('CandidacyNotesService.updateCandidacyNote', () => {
     );
 
     expect(mockNotesRepo.update).toHaveBeenCalled();
+  });
+
+  it('lanza CandidacyNoteTerminalStageError si el candidato está contratado', async () => {
+    mockAppsRepo.findById.mockResolvedValue(
+      makeApplication(),
+    );
+
+    await expect(
+      service.updateCandidacyNote(
+        { applicationId: 'app-1', id: 'note-1', text: 'Actualizada' },
+        { uid: 'uid-hr', role: 'hr' },
+      ),
+    ).rejects.toThrow(CandidacyNoteTerminalStageError);
+  });
+
+  it('lanza CandidacyNoteTerminalStageError si el candidato está rechazado', async () => {
+    mockAppsRepo.findById.mockResolvedValue(
+      makeApplication(),
+    );
+
+    await expect(
+      service.updateCandidacyNote(
+        { applicationId: 'app-1', id: 'note-1', text: 'Actualizada' },
+        { uid: 'uid-hr', role: 'hr' },
+      ),
+    ).rejects.toThrow(CandidacyNoteTerminalStageError);
   });
 });
 
