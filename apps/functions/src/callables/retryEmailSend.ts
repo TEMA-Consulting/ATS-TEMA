@@ -8,6 +8,7 @@ import {
   validateRetryEmailSendPayload,
 } from '../validators/retryEmailSendValidator';
 import { EmailLogRepository } from '../repositories/emailLogRepository';
+import { EmployeeRepository } from '../repositories/employeeRepository';
 import { UserRepository } from '../repositories/userRepository';
 import { GmailSenderService } from '../services/gmailSenderService';
 import {
@@ -26,38 +27,41 @@ const retryEmailSendService = new RetryEmailSendService(
   new UserRepository(),
   new GmailSenderService(),
   oauth2Client,
+  new EmployeeRepository(),
 );
 
-export const retryEmailSend = onRequest(async (request, response) => {
-  try {
-    if (request.method !== 'POST') {
-      response.status(405).json({ error: 'Method Not Allowed.' });
-      return;
-    }
+export const retryEmailSend = onRequest(
+  { secrets: ['OAUTH_ENCRYPTION_KEY'] },
+  async (request, response) => {
+    try {
+      if (request.method !== 'POST') {
+        response.status(405).json({ error: 'Method Not Allowed.' });
+        return;
+      }
 
-    const { uid } = await requireAuthenticatedUser(request);
+      const { uid } = await requireAuthenticatedUser(request);
 
-    const body = request.body as Partial<{ logId: string }>;
-    validateRetryEmailSendPayload(body);
+      const body = request.body as Partial<{ logId: string }>;
+      validateRetryEmailSendPayload(body);
 
-    await retryEmailSendService.retry(body.logId, uid);
+      await retryEmailSendService.retry(body.logId, uid);
 
-    response.status(200).json({ ok: true });
-  } catch (error) {
-    if (error instanceof HttpAuthError) {
-      response.status(401).json({ error: error.message });
-      return;
-    }
+      response.status(200).json({ ok: true });
+    } catch (error) {
+      if (error instanceof HttpAuthError) {
+        response.status(401).json({ error: error.message });
+        return;
+      }
 
-    if (error instanceof RetryEmailSendValidationError) {
-      response.status(400).json({ error: error.message });
-      return;
-    }
+      if (error instanceof RetryEmailSendValidationError) {
+        response.status(400).json({ error: error.message });
+        return;
+      }
 
-    if (error instanceof EmailLogNotFoundError) {
-      response.status(404).json({ error: error.message });
-      return;
-    }
+      if (error instanceof EmailLogNotFoundError) {
+        response.status(404).json({ error: error.message });
+        return;
+      }
 
     if (error instanceof OfferEmailRetryUnsupportedError) {
       response.status(409).json({ error: error.message });
