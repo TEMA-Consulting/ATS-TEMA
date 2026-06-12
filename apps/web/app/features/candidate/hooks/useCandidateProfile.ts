@@ -168,7 +168,11 @@ export function useCandidateProfile(candidate: CandidateMockProfile) {
   })();
 
   const pendingStages = getAvailableRecruiterStages(currentApplicationStage);
-  const canManageNotes = !isTerminalApplicationStage(currentApplicationStage);
+  const isTerminalStage =
+    isTerminalApplicationStage(currentApplicationStage) ||
+    currentStage === STAGE_LABELS.contratado ||
+    currentStage === STAGE_LABELS.descartado;
+  const canManageNotes = !isTerminalStage;
 
   // Determina el número de entrevista correcto según el tipo (hr o tech).
   // Para RRHH: es la segunda si el stage actual ya superó hr_1_done en el pipeline.
@@ -184,10 +188,14 @@ export function useCandidateProfile(candidate: CandidateMockProfile) {
     return pipelineIdx > threshold ? 2 : 1;
   })();
 
-  const openInterviewModal = useCallback((type: 'tech' | 'hr') => {
-    setInterviewType(type);
-    setInterviewModalOpen(true);
-  }, []);
+  const openInterviewModal = useCallback(
+    (type: 'tech' | 'hr') => {
+      if (isTerminalStage) return;
+      setInterviewType(type);
+      setInterviewModalOpen(true);
+    },
+    [isTerminalStage],
+  );
 
   const openStageDialog = useCallback(() => {
     setSelectedStageKey(pendingStages[0]?.key ?? '');
@@ -468,5 +476,6 @@ export function useCandidateProfile(candidate: CandidateMockProfile) {
     interviewNumber,
     currentApplicationStage,
     canManageNotes,
+    isTerminalStage,
   };
 }

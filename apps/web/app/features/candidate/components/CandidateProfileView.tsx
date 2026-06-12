@@ -39,7 +39,7 @@ import {
 import Link from 'next/link';
 import { EMPLOYEE_ROLES, STAGE_CONFIG } from '@ats/shared-types';
 import { STAGE_LABELS, type CandidateMockProfile } from '../mock/candidateMock';
-import { getCandidateStageLabel, isTerminalApplicationStage } from '../utils/candidateProfile.utils';
+import { getCandidateStageLabel } from '../utils/candidateProfile.utils';
 import { useCandidateProfile } from '../hooks/useCandidateProfile';
 import { CandidateInfoCard } from './CandidateInfoCard';
 import { CommunicationHistoryCard } from './CommunicationHistoryCard';
@@ -89,9 +89,7 @@ export function CandidateProfileView({ candidate }: CandidateProfileViewProps) {
   };
   const getNoteDisplayText = (text: string) =>
     text.replace(/^\[Entrevista[^\]]+\]\s*/i, '');
-  const isTerminalStage = isTerminalApplicationStage(
-    profile.currentApplicationStage,
-  );
+  const { isTerminalStage } = profile;
 
   return (
     <Box
