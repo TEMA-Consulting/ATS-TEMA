@@ -90,9 +90,7 @@ export function CandidateProfileView({ candidate }: CandidateProfileViewProps) {
   };
   const getNoteDisplayText = (text: string) =>
     text.replace(/^\[Entrevista[^\]]+\]\s*/i, '');
-  const isTerminalStage =
-    profile.currentStage === STAGE_LABELS.descartado ||
-    profile.currentStage === STAGE_LABELS.contratado;
+  const { isTerminalStage } = profile;
 
   return (
     <Box
@@ -420,7 +418,7 @@ export function CandidateProfileView({ candidate }: CandidateProfileViewProps) {
                   variant="body2"
                   sx={{ fontWeight: 600, color: 'text.secondary' }}
                 >
-                  Scoring Inicial de IA
+                  Matching de Skills
                 </Typography>
               </Box>
 
@@ -447,7 +445,9 @@ export function CandidateProfileView({ candidate }: CandidateProfileViewProps) {
                     lineHeight: 1,
                   }}
                 >
-                  {candidate.fitScore}%
+                  {candidate.fitScore === undefined
+                    ? 'No disponible'
+                    : `${candidate.fitScore}%`}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                   compatibilidad general con la posición
@@ -467,7 +467,7 @@ export function CandidateProfileView({ candidate }: CandidateProfileViewProps) {
                     color="text.secondary"
                     sx={{ fontWeight: 600, display: 'block', mb: 1 }}
                   >
-                    Skills detectadas
+                    Skills del candidato
                   </Typography>
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
                     {candidate.detectedSkills.map((skill) => (
@@ -668,6 +668,7 @@ export function CandidateProfileView({ candidate }: CandidateProfileViewProps) {
                             </Box>
                           </Box>
                           {canEditNote(note.authorUid) &&
+                            profile.canManageNotes &&
                             !isInterviewNote &&
                             !isEditing && (
                               <Button
@@ -765,47 +766,68 @@ export function CandidateProfileView({ candidate }: CandidateProfileViewProps) {
                 )}
               </Box>
 
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'flex-end',
-                  gap: 1,
-                }}
-              >
-                <TextField
-                  placeholder="Escribí una nota sobre esta candidatura..."
-                  value={profile.newCommentText}
-                  onChange={(e) => profile.setNewCommentText(e.target.value)}
-                  fullWidth
-                  multiline
-                  minRows={2}
-                  maxRows={6}
-                  disabled={profile.isSavingNewNote || profile.isSavingEditNote}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-                      e.preventDefault();
-                      profile.handleSendComment();
-                    }
+              {profile.canManageNotes ? (
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'flex-end',
+                    gap: 1,
+                    pt: 1,
+                    borderTop: 1,
+                    borderColor: 'divider',
                   }}
-                />
-                <IconButton
-                  color="primary"
-                  onClick={profile.handleSendComment}
-                  disabled={
-                    !profile.newCommentText.trim() ||
-                    profile.isSavingNewNote ||
-                    profile.isSavingEditNote
-                  }
-                  aria-label="Enviar nota"
-                  sx={{ mb: 0.5 }}
                 >
-                  {profile.isSavingNewNote ? (
-                    <CircularProgress size={20} />
-                  ) : (
-                    <Send size={20} />
-                  )}
-                </IconButton>
-              </Box>
+                  <TextField
+                    placeholder="Escribí una nota sobre esta candidatura..."
+                    value={profile.newCommentText}
+                    onChange={(e) => profile.setNewCommentText(e.target.value)}
+                    fullWidth
+                    multiline
+                    minRows={2}
+                    maxRows={6}
+                    disabled={
+                      profile.isSavingNewNote || profile.isSavingEditNote
+                    }
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                        e.preventDefault();
+                        profile.handleSendComment();
+                      }
+                    }}
+                  />
+                  <IconButton
+                    color="primary"
+                    onClick={profile.handleSendComment}
+                    disabled={
+                      !profile.newCommentText.trim() ||
+                      profile.isSavingNewNote ||
+                      profile.isSavingEditNote
+                    }
+                    aria-label="Enviar nota"
+                    sx={{ mb: 0.5 }}
+                  >
+                    {profile.isSavingNewNote ? (
+                      <CircularProgress size={20} />
+                    ) : (
+                      <Send size={20} />
+                    )}
+                  </IconButton>
+                </Box>
+              ) : (
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{
+                    display: 'block',
+                    pt: 1,
+                    borderTop: 1,
+                    borderColor: 'divider',
+                  }}
+                >
+                  No se pueden agregar ni editar notas cuando el candidato está
+                  contratado o rechazado.
+                </Typography>
+              )}
             </Card>
 
             <CommunicationHistoryCard candidateId={candidate.id} />
@@ -863,6 +885,7 @@ export function CandidateProfileView({ candidate }: CandidateProfileViewProps) {
         onClose={() => profile.setInterviewModalOpen(false)}
         applicationId={candidate.applicationId}
         candidateName={candidate.fullName}
+        applicationStage={profile.currentApplicationStage}
         type={profile.interviewType}
         skills={candidate.jobSkills}
         onSave={() => profile.handleInterviewSave()}
