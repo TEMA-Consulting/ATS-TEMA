@@ -62,13 +62,13 @@ pnpm install
 ### 2. Configurar Variables de Entorno
 
 - **Frontend (`apps/web`)**:
-  Crea o revisa el archivo `apps/web/.env.local`. Por defecto viene preconfigurado para conectarse a los emuladores locales:
+  Crea o revisa el archivo `apps/web/.env.local`. Tomá como base `apps/web/.env.example` o el archivo de ejemplo del proyecto y reemplazá los valores por los que correspondan a tu entorno:
 
   ```env
-  NEXT_PUBLIC_FIREBASE_API_KEY='AIzaSyBSKSsLETGOk5ERE4EKw_LLCLphbDIlxfU'
-  NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN='ats-tema-ort.firebaseapp.com'
-  NEXT_PUBLIC_FIREBASE_PROJECT_ID='ats-tema-ort'
-  NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET='ats-tema-ort.firebasestorage.app'
+  NEXT_PUBLIC_FIREBASE_API_KEY='your-api-key'
+  NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN='your-project.firebaseapp.com'
+  NEXT_PUBLIC_FIREBASE_PROJECT_ID='your-project-id'
+  NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET='your-project.appspot.com'
   NEXT_PUBLIC_FUNCTIONS_REGION='us-central1'
   NEXT_PUBLIC_USE_EMULATORS=true
   ```
