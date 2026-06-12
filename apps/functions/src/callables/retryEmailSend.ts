@@ -68,10 +68,11 @@ export const retryEmailSend = onRequest(
       return;
     }
 
-    logger.error(
-      '[retryEmailSend] Error inesperado al reintentar envío de email',
-      error,
-    );
-    response.status(500).json({ error: 'No se pudo reenviar el email.' });
-  }
-});
+      logger.error(
+        '[retryEmailSend] Error inesperado al reintentar envío de email',
+        error,
+      );
+      response.status(500).json({ error: 'No se pudo reenviar el email.' });
+    }
+  },
+);
