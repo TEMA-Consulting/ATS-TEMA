@@ -10,7 +10,6 @@ import { emailTemplateRepository } from '../../repositories';
 export const EMAIL_TEMPLATE_VARIABLES = [
   '[Nombre del Candidato]',
   '[Nombre de la Posición]',
-  '[Dirección Física]',
 ] as const;
 
 export const EMAIL_TEMPLATE_STAGE_LABELS: Record<EmailTemplateStage, string> = {
@@ -73,7 +72,7 @@ const DEFAULT_EMAIL_TEMPLATES: CreateEmailTemplateDTO[] = [
     name: 'Entrevista presencial',
     stage: 'onsite_interview',
     subject: 'Entrevista presencial - [Nombre de la Posición]',
-    body: 'Estimado/a [Nombre del Candidato], queremos invitarte a una entrevista presencial para la posición de [Nombre de la Posición]. Te esperamos en [Dirección Física]. Saludos, Equipo de Recursos Humanos',
+    body: 'Estimado/a [Nombre del Candidato], queremos invitarte a una entrevista presencial para la posición de [Nombre de la Posición]. Te esperamos en COMPLETAR DIRECCIÓN. Saludos, Equipo de Recursos Humanos',
     isDefault: true,
   },
 ];

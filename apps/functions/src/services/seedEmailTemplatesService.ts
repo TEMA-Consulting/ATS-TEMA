@@ -147,7 +147,7 @@ const TEMPLATE_SEEDS: TemplateDefinition[] = [
       'Te esperamos para una entrevista presencial — [Nombre de la Posición]',
     body: `<p>Estimado/a [Nombre del Candidato],</p>
 <p>Queremos invitarte a una entrevista presencial para el puesto de <strong>[Nombre de la Posición]</strong> en <strong>[Nombre de la Empresa]</strong>.</p>
-<p><strong>Dirección:</strong> [Dirección Física]</p>
+<p><strong>Dirección:</strong> COMPLETAR DIRECCIÓN</p>
 <p>Ante cualquier consulta, escribinos a [Email del Reclutador].</p>
 <p>Saludos,<br>[Nombre del Reclutador]<br>[Email del Reclutador]</p>`,
     isDefault: true,

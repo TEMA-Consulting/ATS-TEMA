@@ -187,10 +187,7 @@ describe('StageEmailService.sendIfTemplateExists', () => {
     sender = makeGmailSender();
     oauth2 = makeOAuth2Client();
 
-    vi.mocked(orgRepo.get).mockResolvedValue({
-      companyName: 'ATS Corp',
-      physicalAddress: 'Av. Siempre Viva 742',
-    });
+    vi.mocked(orgRepo.get).mockResolvedValue({ companyName: 'ATS Corp' });
     vi.mocked(logRepo.create).mockResolvedValue('log-id-1');
     vi.mocked(logRepo.updateStatus).mockResolvedValue(undefined);
 
@@ -276,12 +273,12 @@ describe('StageEmailService.sendIfTemplateExists', () => {
     });
   });
 
-  it('envia email de entrevista presencial usando la plantilla y direccion fisica configurada', async () => {
+  it('envia email de entrevista presencial usando el texto fijo de la plantilla', async () => {
     vi.mocked(templateRepo.findByStage).mockResolvedValue(
       makeTemplate({
         stage: 'onsite_interview',
         subject: 'Entrevista presencial',
-        body: '<p>Direccion: [Dirección Física]</p>',
+        body: '<p>Direccion: Av. Corrientes 1234</p>',
       }),
     );
     vi.mocked(userRepo.getGmailCredential).mockResolvedValue(validCredential);
@@ -299,9 +296,7 @@ describe('StageEmailService.sendIfTemplateExists', () => {
     expect(templateRepo.findByStage).toHaveBeenCalledWith('onsite_interview');
     expect(resolver.resolve).toHaveBeenCalledWith(
       expect.objectContaining({ stage: 'onsite_interview' }),
-      expect.objectContaining({
-        physicalAddress: 'Av. Siempre Viva 742',
-      }),
+      expect.objectContaining({ companyName: 'ATS Corp' }),
     );
     expect(logRepo.create).toHaveBeenCalledOnce();
     expect(sender.send).toHaveBeenCalledOnce();

@@ -2,7 +2,6 @@ import { db } from '../core/firebaseAdmin';
 
 interface OrgConfig {
   companyName: string;
-  physicalAddress: string;
 }
 
 export interface IOrgConfigRepository {
@@ -27,14 +26,11 @@ export class OrgConfigRepository implements IOrgConfigRepository {
       const snapshot = await this.collection.doc('org').get();
 
       if (!snapshot.exists) {
-        return { companyName: '', physicalAddress: '' };
+        return { companyName: '' };
       }
 
       const data = snapshot.data();
-      return {
-        companyName: data?.companyName ?? '',
-        physicalAddress: data?.physicalAddress ?? '',
-      };
+      return { companyName: data?.companyName ?? '' };
     } catch (error) {
       throw new OrgConfigRepositoryError(
         'No se pudo obtener la configuración de la organización.',

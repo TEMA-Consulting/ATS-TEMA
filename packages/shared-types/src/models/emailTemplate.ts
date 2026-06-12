@@ -58,10 +58,6 @@ export const TEMPLATE_VARIABLES = {
     label: '[Nombre de la Empresa]',
     description: 'Nombre de la organización',
   },
-  PHYSICAL_ADDRESS: {
-    label: '[Dirección Física]',
-    description: 'Dirección física para entrevistas presenciales',
-  },
 } as const;
 
 export type TemplateVariableKey = keyof typeof TEMPLATE_VARIABLES;
