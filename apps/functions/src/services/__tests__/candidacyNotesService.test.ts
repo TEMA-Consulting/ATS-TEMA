@@ -21,7 +21,9 @@ vi.mock('../../core/firebaseAdmin', () => ({
   },
 }));
 
-const makeApplication = (): Application => ({
+const makeApplication = (
+  overrides: Partial<Application> = {},
+): Application => ({
   id: 'app-1',
   jobId: 'job-1',
   candidateId: 'cand-1',
@@ -30,6 +32,7 @@ const makeApplication = (): Application => ({
   createdAt: new Date(),
   updatedAt: new Date(),
   stageUpdatedAt: new Date(),
+  ...overrides,
 });
 
 const makeNote = (overrides: Partial<CandidacyNote> = {}): CandidacyNote => ({
@@ -93,7 +96,7 @@ describe('CandidacyNotesService.saveCandidacyNote', () => {
 
   it('lanza CandidacyNoteTerminalStageError si el candidato está contratado', async () => {
     mockAppsRepo.findById.mockResolvedValue(
-      makeApplication( ),
+      makeApplication({ stage: 'hired' }),
     );
 
     await expect(
@@ -106,7 +109,7 @@ describe('CandidacyNotesService.saveCandidacyNote', () => {
 
   it('lanza CandidacyNoteTerminalStageError si el candidato está rechazado', async () => {
     mockAppsRepo.findById.mockResolvedValue(
-      makeApplication(),
+      makeApplication({ stage: 'rejected' }),
     );
 
     await expect(
@@ -195,7 +198,7 @@ describe('CandidacyNotesService.updateCandidacyNote', () => {
 
   it('lanza CandidacyNoteTerminalStageError si el candidato está contratado', async () => {
     mockAppsRepo.findById.mockResolvedValue(
-      makeApplication(),
+      makeApplication({ stage: 'hired' }),
     );
 
     await expect(
@@ -208,7 +211,7 @@ describe('CandidacyNotesService.updateCandidacyNote', () => {
 
   it('lanza CandidacyNoteTerminalStageError si el candidato está rechazado', async () => {
     mockAppsRepo.findById.mockResolvedValue(
-      makeApplication(),
+      makeApplication({ stage: 'rejected' }),
     );
 
     await expect(

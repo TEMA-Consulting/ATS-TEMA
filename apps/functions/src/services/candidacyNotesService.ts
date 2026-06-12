@@ -66,6 +66,8 @@ export class CandidacyNotesService {
       throw new ApplicationNotFoundError(applicationId);
     }
 
+    this.assertCanManageNotes(application);
+
     return this.createNote(applicationId, text, source, caller);
   }
 
