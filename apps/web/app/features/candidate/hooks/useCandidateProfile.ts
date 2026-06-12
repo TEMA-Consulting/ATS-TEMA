@@ -16,6 +16,7 @@ import {
 } from '@/shared/api/candidacyNotesApi';
 import {
   getStageHistory,
+  previewApplicationStageEmail,
   updateApplicationStage,
 } from '@/shared/api/applicationsApi';
 import {
@@ -27,6 +28,7 @@ import {
   STAGE_CONFIG,
   isValidTransition,
   type ApplicationStage,
+  type PreviewApplicationStageEmailResponse,
   type StageHistoryEntry,
 } from '@ats/shared-types';
 
@@ -108,6 +110,7 @@ export function useCandidateProfile(candidate: CandidateMockProfile) {
   const [interviewModalOpen, setInterviewModalOpen] = useState(false);
   const [interviewType, setInterviewType] = useState<'tech' | 'hr'>('tech');
   const [stageDialogOpen, setStageDialogOpen] = useState(false);
+  const [stageEmailPreviewOpen, setStageEmailPreviewOpen] = useState(false);
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
   const [selectedStageKey, setSelectedStageKey] = useState<
@@ -118,7 +121,10 @@ export function useCandidateProfile(candidate: CandidateMockProfile) {
   const [isSavingEditNote, setIsSavingEditNote] = useState(false);
   const [isLoadingNotes, setIsLoadingNotes] = useState(false);
   const [isUpdatingStage, setIsUpdatingStage] = useState(false);
+  const [isPreviewingStageEmail, setIsPreviewingStageEmail] = useState(false);
   const [snackbar, setSnackbar] = useState<SnackbarState>(null);
+  const [stageEmailPreview, setStageEmailPreview] =
+    useState<PreviewApplicationStageEmailResponse | null>(null);
 
   const [currentStage, setCurrentStage] = useState(candidate.currentStage);
   const [stageHistory, setStageHistory] = useState(candidate.stageHistory);
@@ -283,6 +289,29 @@ export function useCandidateProfile(candidate: CandidateMockProfile) {
     }
   }, [editingText, editingNoteId, candidate.applicationId, candidacyNotes]);
 
+  const handlePreviewStageChange = useCallback(async () => {
+    if (!selectedStageKey) return;
+
+    setIsPreviewingStageEmail(true);
+    try {
+      const preview = await previewApplicationStageEmail({
+        applicationId: candidate.applicationId,
+        stage: CANDIDATE_STAGE_TO_APP_STAGE[selectedStageKey],
+      });
+
+      setStageEmailPreview(preview);
+      setStageDialogOpen(false);
+      setStageEmailPreviewOpen(true);
+    } catch {
+      setSnackbar({
+        message: 'No se pudo previsualizar el email',
+        severity: 'error',
+      });
+    } finally {
+      setIsPreviewingStageEmail(false);
+    }
+  }, [selectedStageKey, candidate.applicationId]);
+
   const handleStageChange = useCallback(async () => {
     if (!selectedStageKey) return;
 
@@ -295,9 +324,12 @@ export function useCandidateProfile(candidate: CandidateMockProfile) {
 
       setStageHistory((current) => applyStageChange(current, selectedStageKey));
       setCurrentStage(STAGE_LABELS[selectedStageKey]);
-      setStageDialogOpen(false);
+      setStageEmailPreviewOpen(false);
+      setStageEmailPreview(null);
       setSnackbar({
-        message: `Etapa actualizada a "${STAGE_LABELS[selectedStageKey]}"`,
+        message: stageEmailPreview?.hasEmail
+          ? 'Se cambio de etapa y se envio el correo'
+          : `Etapa actualizada a "${STAGE_LABELS[selectedStageKey]}"`,
         severity: 'success',
       });
       refreshStageHistory().catch(() => {});
@@ -309,7 +341,12 @@ export function useCandidateProfile(candidate: CandidateMockProfile) {
     } finally {
       setIsUpdatingStage(false);
     }
-  }, [selectedStageKey, candidate.applicationId, refreshStageHistory]);
+  }, [
+    selectedStageKey,
+    candidate.applicationId,
+    refreshStageHistory,
+    stageEmailPreview?.hasEmail,
+  ]);
 
   const handleReject = useCallback(async () => {
     if (!rejectReason.trim()) return;
@@ -390,6 +427,8 @@ export function useCandidateProfile(candidate: CandidateMockProfile) {
     interviewType,
     stageDialogOpen,
     setStageDialogOpen,
+    stageEmailPreviewOpen,
+    setStageEmailPreviewOpen,
     rejectDialogOpen,
     setRejectDialogOpen,
     menuAnchor,
@@ -402,12 +441,14 @@ export function useCandidateProfile(candidate: CandidateMockProfile) {
     isSavingEditNote,
     isLoadingNotes,
     isUpdatingStage,
+    isPreviewingStageEmail,
     snackbar,
     setSnackbar,
     currentStage,
     stageHistory,
     realStageHistory,
     candidacyNotes,
+    stageEmailPreview,
     pendingStages,
     newCommentText,
     setNewCommentText,
@@ -421,6 +462,7 @@ export function useCandidateProfile(candidate: CandidateMockProfile) {
     startEditingNote,
     cancelEditingNote,
     handleSaveEditedNote,
+    handlePreviewStageChange,
     handleStageChange,
     handleReject,
     handleOfferSent,

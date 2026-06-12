@@ -59,6 +59,7 @@ export function CandidateProfileView({ candidate }: CandidateProfileViewProps) {
   const profile = useCandidateProfile(candidate);
   const { role, callerUid } = useAuth();
   const [formsModalOpen, setFormsModalOpen] = useState(false);
+  const [stageSendConfirmOpen, setStageSendConfirmOpen] = useState(false);
 
   const canDoHrInterview =
     role === EMPLOYEE_ROLES.HR || role === EMPLOYEE_ROLES.ADMIN;
@@ -878,7 +879,7 @@ export function CandidateProfileView({ candidate }: CandidateProfileViewProps) {
       <Dialog
         open={canManageCandidateStage && profile.stageDialogOpen}
         onClose={() =>
-          !profile.isUpdatingStage && profile.setStageDialogOpen(false)
+          !profile.isPreviewingStageEmail && profile.setStageDialogOpen(false)
         }
         maxWidth="sm"
         fullWidth
@@ -900,7 +901,7 @@ export function CandidateProfileView({ candidate }: CandidateProfileViewProps) {
               <FormControlLabel
                 key={stage.key}
                 value={stage.key}
-                control={<Radio disabled={profile.isUpdatingStage} />}
+                control={<Radio disabled={profile.isPreviewingStageEmail} />}
                 label={STAGE_LABELS[stage.key]}
               />
             ))}
@@ -909,21 +910,179 @@ export function CandidateProfileView({ candidate }: CandidateProfileViewProps) {
         <DialogActions sx={{ px: 3, py: 2 }}>
           <Button
             onClick={() => profile.setStageDialogOpen(false)}
-            disabled={profile.isUpdatingStage}
+            disabled={profile.isPreviewingStageEmail}
           >
             Cancelar
           </Button>
           <Button
             variant="contained"
-            onClick={profile.handleStageChange}
-            disabled={!profile.selectedStageKey || profile.isUpdatingStage}
+            onClick={profile.handlePreviewStageChange}
+            disabled={
+              !profile.selectedStageKey || profile.isPreviewingStageEmail
+            }
+            startIcon={
+              profile.isPreviewingStageEmail ? (
+                <CircularProgress size={16} color="inherit" />
+              ) : null
+            }
+          >
+            {profile.isPreviewingStageEmail
+              ? 'Generando...'
+              : 'Previsualizar correo'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={canManageCandidateStage && profile.stageEmailPreviewOpen}
+        onClose={() =>
+          !profile.isUpdatingStage && profile.setStageEmailPreviewOpen(false)
+        }
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>Previsualización del correo</DialogTitle>
+        <DialogContent>
+          {profile.stageEmailPreview?.hasEmail ? (
+            <Stack spacing={2}>
+              <DialogContentText color="text.secondary">
+                Revisá el correo que se enviará antes de confirmar el cambio de
+                etapa.
+              </DialogContentText>
+              <Box>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ display: 'block', mb: 0.5 }}
+                >
+                  Para
+                </Typography>
+                <Typography variant="body2">
+                  {profile.stageEmailPreview.candidateEmail}
+                </Typography>
+              </Box>
+              <Box>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ display: 'block', mb: 0.5 }}
+                >
+                  Plantilla
+                </Typography>
+                <Typography variant="body2">
+                  {profile.stageEmailPreview.templateName}
+                </Typography>
+              </Box>
+              <Box>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ display: 'block', mb: 0.5 }}
+                >
+                  Asunto
+                </Typography>
+                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                  {profile.stageEmailPreview.subject}
+                </Typography>
+              </Box>
+              <Box
+                sx={{
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '8px',
+                  bgcolor: '#ffffff',
+                  p: 2,
+                  maxHeight: 360,
+                  overflow: 'auto',
+                }}
+              >
+                <Box
+                  sx={{
+                    color: 'text.primary',
+                    fontSize: 14,
+                    lineHeight: 1.6,
+                    '& p': { my: 1 },
+                  }}
+                  dangerouslySetInnerHTML={{
+                    __html: profile.stageEmailPreview.body ?? '',
+                  }}
+                />
+              </Box>
+            </Stack>
+          ) : (
+            <DialogContentText color="text.secondary">
+              Esta etapa no tiene una plantilla configurada. Al confirmar solo
+              se cambiará la etapa del candidato y no se enviará ningún correo.
+            </DialogContentText>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ px: 3, py: 2 }}>
+          <Button
+            onClick={() => profile.setStageEmailPreviewOpen(false)}
+            disabled={profile.isUpdatingStage}
+          >
+            Volver
+          </Button>
+          <Button
+            variant="contained"
+            onClick={() => {
+              if (profile.stageEmailPreview?.hasEmail) {
+                setStageSendConfirmOpen(true);
+                return;
+              }
+              profile.handleStageChange();
+            }}
+            disabled={profile.isUpdatingStage}
             startIcon={
               profile.isUpdatingStage ? (
                 <CircularProgress size={16} color="inherit" />
               ) : null
             }
           >
-            {profile.isUpdatingStage ? 'Actualizando...' : 'Confirmar cambio'}
+            {profile.isUpdatingStage
+              ? 'Confirmando...'
+              : profile.stageEmailPreview?.hasEmail
+                ? 'Confirmar y enviar el correo'
+                : 'Confirmar cambio'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={stageSendConfirmOpen}
+        onClose={() =>
+          !profile.isUpdatingStage && setStageSendConfirmOpen(false)
+        }
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Confirmar envío</DialogTitle>
+        <DialogContent>
+          <DialogContentText color="text.secondary">
+            Esta acción cambiará al postulado de etapa y enviará el email
+            correspondiente.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, py: 2 }}>
+          <Button
+            onClick={() => setStageSendConfirmOpen(false)}
+            disabled={profile.isUpdatingStage}
+          >
+            Cancelar
+          </Button>
+          <Button
+            variant="contained"
+            onClick={() => {
+              setStageSendConfirmOpen(false);
+              profile.handleStageChange();
+            }}
+            disabled={profile.isUpdatingStage}
+            startIcon={
+              profile.isUpdatingStage ? (
+                <CircularProgress size={16} color="inherit" />
+              ) : null
+            }
+          >
+            {profile.isUpdatingStage ? 'Confirmando...' : 'Aceptar'}
           </Button>
         </DialogActions>
       </Dialog>
