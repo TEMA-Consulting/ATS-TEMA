@@ -117,7 +117,7 @@ export interface CandidateMockProfile {
   professionalSummary?: string;
   experience: CandidateExperience[];
   education: CandidateEducation[];
-  fitScore: number;
+  fitScore?: number;
   detectedSkills: string[];
   gapSkills: string[];
   jobSkills: Skill[];
