@@ -10,10 +10,11 @@ import type {
   GmailCredential,
   Job,
 } from '@ats/shared-types';
-import { STAGE_CONFIG } from '@ats/shared-types';
+import { GMAIL_STATUS, STAGE_CONFIG } from '@ats/shared-types';
 
 import type { IEmailLogRepository } from '../repositories/emailLogRepository';
 import type { IEmailTemplateRepository } from '../repositories/emailTemplateRepository';
+import type { IEmployeeRepository } from '../repositories/employeeRepository';
 import type { IOrgConfigRepository } from '../repositories/orgConfigRepository';
 import type { IUserRepository } from '../repositories/userRepository';
 import type { GmailSenderService } from './gmailSenderService';
@@ -31,6 +32,7 @@ export class StageEmailService {
     private readonly templateResolver: TemplateResolverService,
     private readonly gmailSender: GmailSenderService,
     private readonly oauth2Client: OAuth2Client,
+    private readonly employeeRepository?: IEmployeeRepository,
   ) {}
 
   async sendIfTemplateExists(
@@ -40,6 +42,8 @@ export class StageEmailService {
     newStage: ApplicationStage,
     recruiterId: string,
     recruiterEmail: string,
+    offerLink = '',
+    offerId?: string,
   ): Promise<boolean> {
     try {
       //  Resolver emailTemplateStage si es null no hay comunicaciones para esa etapa
@@ -47,17 +51,27 @@ export class StageEmailService {
       if (emailTemplateStage === null) {
         return false;
       }
+      if (emailTemplateStage === 'offer' && !offerLink) {
+        return false;
+      }
 
       // Busca templates para la etapa.
       const template =
         await this.emailTemplateRepository.findByStage(emailTemplateStage);
       if (!template) {
+        logger.warn('StageEmailService: no hay template configurado', {
+          stage: newStage,
+          emailTemplateStage,
+          applicationId: application.id,
+        });
         return false;
       }
 
-      const [orgConfig, credential] = await Promise.all([
+      const [orgConfig, credential, calendarLink] = await Promise.all([
         this.orgConfigRepository.get(),
         this.userRepository.getGmailCredential(recruiterId),
+        this.employeeRepository?.getCalendarLink(recruiterId) ??
+          Promise.resolve(null),
       ]);
 
       const candidateName =
@@ -71,8 +85,9 @@ export class StageEmailService {
         positionName: job.title,
         recruiterName: recruiterEmail,
         recruiterEmail,
-        calendarLink: '', //TODO: add calenndar link variable from logged user
+        calendarLink: calendarLink ?? '',
         companyName: orgConfig.companyName,
+        offerLink,
       };
 
       const { subject, body } = this.templateResolver.resolve(
@@ -82,6 +97,7 @@ export class StageEmailService {
 
       const candidateEmail = candidate.email ?? '';
       const logDto: CreateEmailLogDTO = {
+        ...(offerId && { offerId }),
         applicationId: application.id,
         candidateId: application.candidateId,
         candidateEmail,
@@ -115,16 +131,27 @@ export class StageEmailService {
       try {
         freshCredential = await this.refreshIfNeeded(credential, recruiterId);
       } catch (refreshError) {
+        const isRevoked =
+          refreshError instanceof Error &&
+          refreshError.message.includes('invalid_grant');
+
         logger.error(
           'StageEmailService: no se pudo refrescar el token de Gmail',
-          {
-            recruiterId,
-            error: refreshError,
-          },
+          { recruiterId, error: refreshError, isRevoked },
         );
+
+        if (isRevoked) {
+          await this.employeeRepository?.setGmailStatus(
+            recruiterId,
+            GMAIL_STATUS.DISCONNECTED,
+          );
+        }
+
         await this.emailLogRepository.updateStatus(logId, {
           status: 'failed',
-          error: 'No se pudo refrescar el token de acceso de Gmail.',
+          error: isRevoked
+            ? 'TOKEN_REVOKED: el acceso a Gmail fue revocado. El recruiter debe reconectar su cuenta.'
+            : 'No se pudo refrescar el token de acceso de Gmail.',
         });
         return false;
       }

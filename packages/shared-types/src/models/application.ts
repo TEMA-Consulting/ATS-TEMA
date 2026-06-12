@@ -44,7 +44,6 @@ export interface Application {
   status: ApplicationStatus;
 
   fitScore?: number; // 0-100, generado por AI tras parsear CV
-  fitSummary?: string; // resumen generado por AI
   coverLetter?: string;
 
   /**
@@ -81,12 +80,7 @@ export type CreateStageHistoryEntryDTO = Omit<
 
 export type CreateApplicationDTO = Omit<
   Application,
-  | 'id'
-  | 'createdAt'
-  | 'updatedAt'
-  | 'stageUpdatedAt'
-  | 'fitScore'
-  | 'fitSummary'
+  'id' | 'createdAt' | 'updatedAt' | 'stageUpdatedAt' | 'fitScore'
 >;
 export type UpdateApplicationDTO = Partial<
   Omit<Application, 'id' | 'createdAt'>

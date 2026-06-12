@@ -11,10 +11,12 @@ const PORT = process.env.FUNCTIONS_EMULATOR_PORT ?? '5001';
 const BASE_URL = `http://127.0.0.1:${PORT}/${PROJECT_ID}/${REGION}`;
 const AUTH_EMULATOR_URL = `http://127.0.0.1:9099`;
 
+const CALENDAR_LINK = 'https://calendar.app.google/rvMLFNkM2WwBZLaU7';
+
 const DASHBOARD_USERS = [
-  { email: 'admin@tema.dev',     password: 'pass123', displayName: 'Admin Tema',       role: 'admin' },
-  { email: 'recruiter@tema.dev', password: 'pass123', displayName: 'Recruiter Tema',   role: 'hr' },
-  { email: 'hiring@tema.dev',    password: 'pass123', displayName: 'Hiring Manager',   role: 'hiring_manager' },
+  { email: 'admin@tema.dev',      password: 'pass123', displayName: 'Admin Tema',     role: 'admin',       devUid: 'admin-dev' },
+  { email: 'recruiter@tema.dev',  password: 'pass123', displayName: 'Recruiter Tema', role: 'hr',          devUid: 'recruiter-dev', calendarLink: CALENDAR_LINK },
+  { email: 'arealeader@tema.dev', password: 'pass123', displayName: 'Área Líder',     role: 'area_leader', devUid: 'area-leader-dev' },
 ];
 
 async function callSeeder(functionName) {
@@ -37,42 +39,51 @@ async function callSeeder(functionName) {
   return body.result ?? body;
 }
 
-async function createAuthUser({ email, password, displayName, role }) {
-  // Crea o actualiza el usuario en el Auth Emulator via REST
-  const signUpUrl = `${AUTH_EMULATOR_URL}/identitytoolkit.googleapis.com/v1/accounts:signUp?key=fake-api-key`;
+async function createAuthUser({ email, password, displayName, role, devUid }) {
+  // Usa el endpoint admin del emulador para crear el usuario con UID fijo.
+  // "Authorization: Bearer owner" omite la verificación de auth en el emulador.
+  const adminUrl = `${AUTH_EMULATOR_URL}/identitytoolkit.googleapis.com/v1/projects/${PROJECT_ID}/accounts`;
 
-  const signUpRes = await fetch(signUpUrl, {
+  const createRes = await fetch(adminUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer owner',
+    },
+    body: JSON.stringify({ localId: devUid, email, password, displayName }),
+  });
+
+  if (!createRes.ok) {
+    const body = await createRes.json();
+    const msg = body?.error?.message ?? '';
+    // Si ya existe con ese UID o ese email, lo ignoramos y seguimos
+    if (!msg.includes('DUPLICATE_LOCAL_ID') && !msg.includes('EMAIL_EXISTS')) {
+      throw new Error(`Error creando ${email}: ${msg}`);
+    }
+  }
+
+  if (role) {
+    const claimsUrl = `${AUTH_EMULATOR_URL}/emulator/v1/projects/${PROJECT_ID}/accounts/${devUid}`;
+    await fetch(claimsUrl, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ customAttributes: JSON.stringify({ role }) }),
+    });
+  }
+}
+
+async function seedEmployees(employees) {
+  const url = `${BASE_URL}/seedEmployees`;
+  const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password, displayName, returnSecureToken: false }),
+    body: JSON.stringify({ data: { employees } }),
   });
-
-  if (!signUpRes.ok && signUpRes.status !== 400) {
-    throw new Error(`Error creando ${email}: ${signUpRes.status}`);
+  const body = await res.json();
+  if (!res.ok) {
+    throw new Error(`seedEmployees falló: ${JSON.stringify(body)}`);
   }
-
-  const signUpBody = await signUpRes.json();
-
-  // Si ya existe (EMAIL_EXISTS), buscar via endpoint admin del emulator
-  let localId = signUpBody.localId;
-  if (!localId) {
-    const listUrl = `${AUTH_EMULATOR_URL}/emulator/v1/projects/${PROJECT_ID}/accounts`;
-    const listRes = await fetch(listUrl);
-    const listBody = await listRes.json();
-    localId = listBody.userInfo?.find(u => u.email === email)?.localId;
-  }
-
-  if (!localId) throw new Error(`No se pudo obtener localId para ${email}`);
-
-  // Asignar custom claims via emulador Admin REST
-  const claimsUrl = `${AUTH_EMULATOR_URL}/emulator/v1/projects/${PROJECT_ID}/accounts/${localId}`;
-  await fetch(claimsUrl, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ customAttributes: JSON.stringify({ role }) }),
-  });
-
-  return localId;
+  return body.result ?? body;
 }
 
 async function main() {
@@ -80,10 +91,21 @@ async function main() {
 
   console.log('0/5  Usuarios de dashboard...');
   for (const user of DASHBOARD_USERS) {
-    const uid = await createAuthUser(user);
-    console.log(`     ✓ ${user.email} (${user.role}) — uid: ${uid}`);
+    await createAuthUser(user);
+    console.log(`     ✓ auth: ${user.email} (${user.role}) — uid: ${user.devUid}`);
   }
-  console.log();
+  const employeesResult = await seedEmployees(
+    DASHBOARD_USERS
+      .filter(u => u.role !== null)
+      .map(u => ({
+        uid: u.devUid,
+        email: u.email,
+        name: u.displayName,
+        role: u.role,
+        ...(u.calendarLink ? { calendarLink: u.calendarLink } : {}),
+      }))
+  );
+  console.log(`     ✓ employees en Firestore: ${employeesResult.processed}\n`);
 
   console.log('1/5  seedJobs...');
   const jobsResult = await callSeeder('seedJobs');

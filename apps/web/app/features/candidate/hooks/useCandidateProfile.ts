@@ -118,7 +118,6 @@ export function useCandidateProfile(candidate: CandidateMockProfile) {
   const [isSavingEditNote, setIsSavingEditNote] = useState(false);
   const [isLoadingNotes, setIsLoadingNotes] = useState(false);
   const [isUpdatingStage, setIsUpdatingStage] = useState(false);
-  const [showAllStrengths, setShowAllStrengths] = useState(false);
   const [snackbar, setSnackbar] = useState<SnackbarState>(null);
 
   const [currentStage, setCurrentStage] = useState(candidate.currentStage);
@@ -184,10 +183,6 @@ export function useCandidateProfile(candidate: CandidateMockProfile) {
         : PIPELINE_ORDER.indexOf('tech_1_done');
     return pipelineIdx > threshold ? 2 : 1;
   })();
-
-  const visibleStrengths = showAllStrengths
-    ? candidate.strengths
-    : candidate.strengths.slice(0, 2);
 
   const openInterviewModal = useCallback((type: 'tech' | 'hr') => {
     setInterviewType(type);
@@ -443,8 +438,6 @@ export function useCandidateProfile(candidate: CandidateMockProfile) {
     isSavingEditNote,
     isLoadingNotes,
     isUpdatingStage,
-    showAllStrengths,
-    setShowAllStrengths,
     snackbar,
     setSnackbar,
     currentStage,
@@ -452,7 +445,6 @@ export function useCandidateProfile(candidate: CandidateMockProfile) {
     realStageHistory,
     candidacyNotes,
     pendingStages,
-    visibleStrengths,
     newCommentText,
     setNewCommentText,
     editingNoteId,

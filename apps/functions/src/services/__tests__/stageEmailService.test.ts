@@ -15,6 +15,7 @@ vi.mock('firebase-functions', () => ({
 import { StageEmailService } from '../stageEmailService';
 import type { IEmailLogRepository } from '../../repositories/emailLogRepository';
 import type { IEmailTemplateRepository } from '../../repositories/emailTemplateRepository';
+import type { IEmployeeRepository } from '../../repositories/employeeRepository';
 import type { IOrgConfigRepository } from '../../repositories/orgConfigRepository';
 import type { IUserRepository } from '../../repositories/userRepository';
 import type { GmailSenderService } from '../gmailSenderService';
@@ -101,6 +102,8 @@ const makeEmailLogRepo = (): IEmailLogRepository => ({
 const makeUserRepo = (): IUserRepository => ({
   getGmailCredential: vi.fn(),
   updateGmailCredential: vi.fn(),
+  getCalendarCredential: vi.fn(),
+  updateCalendarCredential: vi.fn(),
 });
 
 const makeOrgConfigRepo = (): IOrgConfigRepository => ({
@@ -126,6 +129,11 @@ const makeOAuth2Client = (): OAuth2Client =>
     refreshAccessToken: vi.fn(),
   }) as unknown as OAuth2Client;
 
+const makeEmployeeRepo = (): IEmployeeRepository => ({
+  getCalendarLink: vi.fn().mockResolvedValue(null),
+  setGmailStatus: vi.fn().mockResolvedValue(undefined),
+});
+
 // --- Helper para construir el servicio ---
 
 const buildService = (
@@ -136,6 +144,7 @@ const buildService = (
   resolver: TemplateResolverService,
   sender: GmailSenderService,
   oauth2: OAuth2Client,
+  employeeRepo?: IEmployeeRepository,
 ) =>
   new StageEmailService(
     templateRepo,
@@ -145,6 +154,7 @@ const buildService = (
     resolver,
     sender,
     oauth2,
+    employeeRepo,
   );
 
 // --- Tests ---
@@ -229,6 +239,50 @@ describe('StageEmailService.sendIfTemplateExists', () => {
     expect(sender.send).not.toHaveBeenCalled();
   });
 
+  it('no envía la plantilla offer cuando no se recibió el link público de la carta', async () => {
+    await service.sendIfTemplateExists(
+      application,
+      candidate,
+      job,
+      'send_offer',
+      'recruiter-1',
+      'recruiter@example.com',
+    );
+
+    expect(templateRepo.findByStage).not.toHaveBeenCalled();
+    expect(logRepo.create).not.toHaveBeenCalled();
+    expect(sender.send).not.toHaveBeenCalled();
+  });
+
+  it('pasa el link público de la carta al resolver para la plantilla offer', async () => {
+    vi.mocked(templateRepo.findByStage).mockResolvedValue(
+      makeTemplate({ stage: 'offer' }),
+    );
+    vi.mocked(userRepo.getGmailCredential).mockResolvedValue(validCredential);
+    vi.mocked(sender.send).mockResolvedValue(undefined);
+
+    await service.sendIfTemplateExists(
+      application,
+      candidate,
+      job,
+      'send_offer',
+      'recruiter-1',
+      'recruiter@example.com',
+      'https://ats.example.com/offer/public-token',
+      'offer-1',
+    );
+
+    expect(resolver.resolve).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        offerLink: 'https://ats.example.com/offer/public-token',
+      }),
+    );
+    expect(logRepo.create).toHaveBeenCalledWith(
+      expect.objectContaining({ offerId: 'offer-1', stage: 'send_offer' }),
+    );
+  });
+
   it('ejecuta el flujo completo con éxito: EmailLog pending → sent', async () => {
     vi.mocked(templateRepo.findByStage).mockResolvedValue(makeTemplate());
     vi.mocked(userRepo.getGmailCredential).mockResolvedValue(validCredential);
@@ -255,6 +309,10 @@ describe('StageEmailService.sendIfTemplateExists', () => {
         accessToken: validCredential.accessToken,
         to: 'ana@example.com',
       }),
+    );
+    expect(resolver.resolve).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ offerLink: '' }),
     );
 
     expect(logRepo.updateStatus).toHaveBeenCalledWith('log-id-1', {
@@ -310,6 +368,78 @@ describe('StageEmailService.sendIfTemplateExists', () => {
         status: 'failed',
         error: 'Gmail API error: 500',
       }),
+    );
+  });
+
+  it('pasa el calendarLink del recruiter al resolver de templates cuando está configurado', async () => {
+    const employeeRepo = makeEmployeeRepo();
+    vi.mocked(employeeRepo.getCalendarLink).mockResolvedValue(
+      'https://calendar.google.com/calendar/appointments/schedules/test123',
+    );
+    vi.mocked(templateRepo.findByStage).mockResolvedValue(makeTemplate());
+    vi.mocked(userRepo.getGmailCredential).mockResolvedValue(validCredential);
+    vi.mocked(sender.send).mockResolvedValue(undefined);
+
+    const serviceWithCalendar = buildService(
+      templateRepo,
+      logRepo,
+      userRepo,
+      orgRepo,
+      resolver,
+      sender,
+      oauth2,
+      employeeRepo,
+    );
+
+    await serviceWithCalendar.sendIfTemplateExists(
+      application,
+      candidate,
+      job,
+      'applied',
+      'recruiter-1',
+      'recruiter@example.com',
+    );
+
+    expect(employeeRepo.getCalendarLink).toHaveBeenCalledWith('recruiter-1');
+    expect(resolver.resolve).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        calendarLink:
+          'https://calendar.google.com/calendar/appointments/schedules/test123',
+      }),
+    );
+  });
+
+  it('usa calendarLink vacío cuando el recruiter no tiene link configurado', async () => {
+    const employeeRepo = makeEmployeeRepo();
+    vi.mocked(employeeRepo.getCalendarLink).mockResolvedValue(null);
+    vi.mocked(templateRepo.findByStage).mockResolvedValue(makeTemplate());
+    vi.mocked(userRepo.getGmailCredential).mockResolvedValue(validCredential);
+    vi.mocked(sender.send).mockResolvedValue(undefined);
+
+    const serviceWithCalendar = buildService(
+      templateRepo,
+      logRepo,
+      userRepo,
+      orgRepo,
+      resolver,
+      sender,
+      oauth2,
+      employeeRepo,
+    );
+
+    await serviceWithCalendar.sendIfTemplateExists(
+      application,
+      candidate,
+      job,
+      'applied',
+      'recruiter-1',
+      'recruiter@example.com',
+    );
+
+    expect(resolver.resolve).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ calendarLink: '' }),
     );
   });
 });

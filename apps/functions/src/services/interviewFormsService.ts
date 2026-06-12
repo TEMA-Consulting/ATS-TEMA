@@ -1,11 +1,12 @@
-import type {
-  EmployeeRole,
-  GetInterviewFormsResponse,
-  InterviewForm,
-  InterviewFormDTO,
-  InterviewFormType,
-  SaveInterviewFormPayload,
-  SaveInterviewFormResponse,
+import {
+  EMPLOYEE_ROLES,
+  type EmployeeRole,
+  type GetInterviewFormsResponse,
+  type InterviewForm,
+  type InterviewFormDTO,
+  type InterviewFormType,
+  type SaveInterviewFormPayload,
+  type SaveInterviewFormResponse,
 } from '@ats/shared-types';
 
 import { findNextStageForTrigger } from '@ats/shared-types';
@@ -28,7 +29,7 @@ export class InterviewFormForbiddenError extends Error {
 const ROLE_LABELS: Record<EmployeeRole, string> = {
   hr: 'Recursos Humanos',
   tech_lead: 'Líder técnico',
-  hiring_manager: 'Hiring Manager',
+  area_leader: 'Área Líder',
   admin: 'Administrador',
 };
 
@@ -114,7 +115,9 @@ export class InterviewFormsService {
     const forms =
       await this.interviewFormsRepository.findByApplicationId(applicationId);
 
-    return this.filterByRole(forms, caller.role).map(this.toInterviewFormDTO);
+    return this.assertCanViewForms(caller.role)
+      ? forms.map(this.toInterviewFormDTO)
+      : [];
   }
 
   private assertCanSubmitForm(
@@ -125,17 +128,17 @@ export class InterviewFormsService {
       throw new InterviewFormForbiddenError();
     }
 
-    if (role === 'admin') {
+    if (role === EMPLOYEE_ROLES.ADMIN) {
       return;
     }
 
-    if (type === 'hr' && role === 'hr') {
+    if (type === 'hr' && role === EMPLOYEE_ROLES.HR) {
       return;
     }
 
     if (
       type === 'tech' &&
-      (role === 'tech_lead' || role === 'hiring_manager')
+      (role === EMPLOYEE_ROLES.TECH_LEAD || role === EMPLOYEE_ROLES.AREA_LEADER)
     ) {
       return;
     }
@@ -143,17 +146,13 @@ export class InterviewFormsService {
     throw new InterviewFormForbiddenError();
   }
 
-  private filterByRole(
-    forms: InterviewForm[],
-    role: EmployeeRole | null,
-  ): InterviewForm[] {
-    if (!role) return [];
-    if (role === 'admin') return forms;
-    if (role === 'hr') return forms.filter((f) => f.type === 'hr');
-    if (role === 'tech_lead' || role === 'hiring_manager') {
-      return forms.filter((f) => f.type === 'tech');
-    }
-    return [];
+  private assertCanViewForms(role: EmployeeRole | null): boolean {
+    return (
+      role === EMPLOYEE_ROLES.ADMIN ||
+      role === EMPLOYEE_ROLES.HR ||
+      role === EMPLOYEE_ROLES.TECH_LEAD ||
+      role === EMPLOYEE_ROLES.AREA_LEADER
+    );
   }
 
   private toInterviewFormDTO(form: InterviewForm): InterviewFormDTO {

@@ -2,8 +2,9 @@ import { type NextRequest, NextResponse } from 'next/server';
 
 const SESSION_COOKIE = 'ats-session';
 const ROLE_COOKIE = 'ats-role';
-const INTERNAL_ROLES = new Set(['admin', 'hr', 'hiring_manager', 'tech_lead']);
+const INTERNAL_ROLES = new Set(['admin', 'hr', 'area_leader', 'tech_lead']);
 const INTERNAL_HOME = '/dashboard/positions';
+const SELECT_ROLE_PATH = '/login/select-role';
 const CANDIDATE_PATHS = ['/', '/jobs', '/postulation'];
 
 function isCandidatePath(pathname: string): boolean {
@@ -36,12 +37,28 @@ export function middleware(request: NextRequest) {
     request.cookies.get(ROLE_COOKIE)?.value ?? getRoleFromJwt(session?.value);
   const { pathname } = request.nextUrl;
 
+  // /login/select-role: accessible only when authenticated but has no role yet.
+  // Redirect away if already has a role (to dashboard) or has no session (to login).
+  if (pathname === SELECT_ROLE_PATH) {
+    if (!session) {
+      return NextResponse.redirect(new URL('/login', request.url));
+    }
+    if (isInternalRole(role)) {
+      return NextResponse.redirect(new URL(INTERNAL_HOME, request.url));
+    }
+    return NextResponse.next();
+  }
+
   if (pathname.startsWith('/dashboard') && !session) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
   if (session && isInternalRole(role) && isCandidatePath(pathname)) {
-    return NextResponse.redirect(new URL(INTERNAL_HOME, request.url));
+    const target = new URL(INTERNAL_HOME, request.url);
+    // Preservar ?code= para callbacks OAuth (Gmail, Calendar)
+    const code = request.nextUrl.searchParams.get('code');
+    if (code) target.searchParams.set('code', code);
+    return NextResponse.redirect(target);
   }
 
   // No redirigir /login → dashboard aquí: el cliente valida Firebase y evita
@@ -57,5 +74,6 @@ export const config = {
     '/postulation/:path*',
     '/dashboard/:path*',
     '/login',
+    '/login/select-role',
   ],
 };

@@ -15,20 +15,20 @@ import {
   signOut as firebaseSignOut,
   type User,
 } from 'firebase/auth';
-import type { EmployeeRole } from '@ats/shared-types';
+import {
+  EMPLOYEE_ROLES,
+  AUTH_EMAIL_WHITELIST,
+  type EmployeeRole,
+} from '@ats/shared-types';
 import { auth, googleProvider } from './firebase';
 import { getFunctionUrl } from './functionsUrl';
 
 const ALLOWED_DOMAIN = 'temaconsulting.com.ar';
 
-// TODO: eliminar estos emails de prueba antes de deploy a producción
-const DEV_WHITELIST_EMAILS = ['jamija.webdev@gmail.com'];
-
 function isEmailAllowed(email: string): boolean {
-  if (email.endsWith(`@${ALLOWED_DOMAIN}`)) return true;
-  // TODO: eliminar whitelist de prueba antes de producción
-  if (DEV_WHITELIST_EMAILS.includes(email)) return true;
-  return false;
+  return (
+    email.endsWith(`@${ALLOWED_DOMAIN}`) || AUTH_EMAIL_WHITELIST.has(email)
+  );
 }
 
 interface AuthContextValue {
@@ -37,19 +37,22 @@ interface AuthContextValue {
   /** UID que usa el backend (en emulador: recruiter-dev, admin-dev, etc.) */
   callerUid: string | null;
   isPendingApproval: boolean;
+  /** true cuando el usuario está autenticado pero aún no eligió un rol */
+  needsRoleSelection: boolean;
   /** true después del primer evento de onAuthStateChanged */
   authReady: boolean;
   loading: boolean;
   signInWithGoogle: (devRole?: DevRole) => Promise<void>;
   signOut: () => Promise<void>;
+  completeRoleOnboarding: (role: 'hr' | 'area_leader') => Promise<void>;
 }
 
-type DevRole = 'admin' | 'recruiter' | 'hiring_manager';
+type DevRole = 'admin' | 'recruiter' | 'area_leader';
 
 const DEV_ACCOUNTS: Record<DevRole, { email: string; token: string }> = {
   admin: { email: 'admin@tema.dev', token: 'dev-admin' },
   recruiter: { email: 'recruiter@tema.dev', token: 'dev-recruiter' },
-  hiring_manager: { email: 'hiring@tema.dev', token: 'dev-hiring-manager' },
+  area_leader: { email: 'arealeader@tema.dev', token: 'dev-area-leader' },
 };
 const DEV_PASSWORD = 'pass123';
 
@@ -58,13 +61,13 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 const DEV_CALLER_UID_BY_TOKEN: Record<string, string> = {
   'dev-admin': 'admin-dev',
   'dev-recruiter': 'recruiter-dev',
-  'dev-hiring-manager': 'hiring-manager-dev',
+  'dev-area-leader': 'area-leader-dev',
 };
 
 function getDevRoleFromToken(token: string | null): EmployeeRole | null {
-  if (token === 'dev-admin') return 'admin';
-  if (token === 'dev-recruiter') return 'hr';
-  if (token === 'dev-hiring-manager') return 'hiring_manager';
+  if (token === 'dev-admin') return EMPLOYEE_ROLES.ADMIN;
+  if (token === 'dev-recruiter') return EMPLOYEE_ROLES.HR;
+  if (token === 'dev-area-leader') return EMPLOYEE_ROLES.AREA_LEADER;
   return null;
 }
 
@@ -212,6 +215,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await clearSessionCookie();
   }, [useEmulators]);
 
+  const completeRoleOnboarding = useCallback(
+    async (selectedRole: 'hr' | 'area_leader') => {
+      if (!user) throw new Error('No hay usuario autenticado.');
+
+      const currentToken = await user.getIdToken();
+
+      const res = await fetch('/api/auth/set-role', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${currentToken}`,
+        },
+        body: JSON.stringify({ role: selectedRole }),
+      });
+
+      if (!res.ok) {
+        const data = (await res.json()) as { error?: string };
+        throw new Error(data.error ?? 'No se pudo asignar el rol.');
+      }
+
+      // Force Firebase to re-read custom claims
+      await user.getIdTokenResult(true);
+      const newToken = await user.getIdToken(true);
+
+      await setSessionCookie(newToken, selectedRole);
+
+      setRole(selectedRole as EmployeeRole);
+      setIsPendingApproval(false);
+    },
+    [user],
+  );
+
   return (
     <AuthContext.Provider
       value={{
@@ -219,10 +254,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         callerUid,
         role,
         isPendingApproval,
+        needsRoleSelection: isPendingApproval,
         authReady,
         loading,
         signInWithGoogle,
         signOut,
+        completeRoleOnboarding,
       }}
     >
       {children}

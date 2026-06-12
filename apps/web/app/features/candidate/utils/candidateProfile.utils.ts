@@ -74,6 +74,10 @@ export function getCandidateStageLabel(stage: ApplicationStage): string {
   return stageKey ? STAGE_LABELS[stageKey] : STAGE_LABELS.postulacion_recibida;
 }
 
+export function isGenericStageChangeOption(stage: ApplicationStage): boolean {
+  return stage !== 'send_offer' && stage !== 'hired';
+}
+
 export function isTerminalApplicationStage(
   stage: ApplicationStage | null,
 ): boolean {
@@ -206,7 +210,7 @@ export function mapApplicationToProfile(
     detectedSkills: [],
     gapSkills: [],
     jobSkills: [],
-    strengths: application.fitSummary ? [application.fitSummary] : [],
+    strengths: [],
     interviewNotes: [],
     stageHistory: buildStageHistory(application.stage),
     currentStage: getCandidateStageLabel(application.stage),
@@ -241,7 +245,7 @@ export function mapDetailToProfile(
     detectedSkills: candidate.technicalSkills ?? [],
     gapSkills: skillMatchStats?.skillsFaltantes.map((s) => s.name) ?? [],
     jobSkills: detail.job.skills,
-    strengths: detail.fitSummary ? [detail.fitSummary] : [],
+    strengths: [],
     interviewNotes: [],
     stageHistory: buildStageHistory(detail.stage),
     currentStage: getCandidateStageLabel(detail.stage),
