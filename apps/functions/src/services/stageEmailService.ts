@@ -77,6 +77,7 @@ export class StageEmailService {
         recruiterEmail,
         calendarLink: calendarLink ?? '',
         companyName: orgConfig.companyName,
+        physicalAddress: orgConfig.physicalAddress,
       };
 
       const { subject, body } = this.templateResolver.resolve(

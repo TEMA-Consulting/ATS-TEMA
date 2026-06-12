@@ -8,6 +8,7 @@ export type EmailTemplateStage =
   | 'interview_tech_1'
   | 'sch_interview_tech_2'
   | 'interview_tech_2'
+  | 'onsite_interview'
   | 'offer'
   | 'hired'
   | 'rejected'
@@ -56,6 +57,10 @@ export const TEMPLATE_VARIABLES = {
   COMPANY_NAME: {
     label: '[Nombre de la Empresa]',
     description: 'Nombre de la organización',
+  },
+  PHYSICAL_ADDRESS: {
+    label: '[Dirección Física]',
+    description: 'Dirección física para entrevistas presenciales',
   },
 } as const;
 

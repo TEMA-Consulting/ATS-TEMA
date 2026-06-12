@@ -26,6 +26,7 @@ const makeContext = (
   recruiterEmail: 'carlos@empresa.com',
   calendarLink: 'https://calendar.app/reunion',
   companyName: 'TechCorp SA',
+  physicalAddress: 'Av. Corrientes 1234, CABA',
   ...overrides,
 });
 
@@ -121,5 +122,17 @@ describe('TemplateResolverService.resolve', () => {
 
     expect(subject).toBe('Mensaje sin variables');
     expect(body).toBe('Cuerpo sin variables. Solo texto plano.');
+  });
+
+  it('reemplaza la direccion fisica para entrevistas presenciales', () => {
+    const template = makeTemplate({
+      stage: 'onsite_interview',
+      subject: 'Entrevista presencial',
+      body: 'Te esperamos en [Dirección Física].',
+    });
+
+    const { body } = service.resolve(template, makeContext());
+
+    expect(body).toBe('Te esperamos en Av. Corrientes 1234, CABA.');
   });
 });
