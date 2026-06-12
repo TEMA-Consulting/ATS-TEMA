@@ -91,6 +91,7 @@ export const STAGE_LABELS: Record<CandidateStageKey, string> = {
   psicotecnico: 'Psicotécnico',
   preocupacional: 'Preocupacional',
   enviar_oferta: 'Enviar Oferta',
+  enviar_oferta: 'Enviamos oferta laboral',
   oferta_enviada: 'Oferta enviada',
   contratado: 'Contratado',
   descartado: 'Descartado',
