@@ -118,6 +118,8 @@ export interface CandidateMockProfile {
   title: string;
   email: string;
   phone: string;
+  expectedMonthlySalaryArs?: number;
+  linkedinUrl?: string;
   location: string;
   yearsOfExperience?: number;
   professionalSummary?: string;
