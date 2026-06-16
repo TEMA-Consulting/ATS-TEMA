@@ -80,6 +80,7 @@ export interface IUserRepository {
     credential: GmailCredential,
   ): Promise<void>;
   saveCalendarWatch(uid: string, watch: CalendarWatch): Promise<void>;
+  getCalendarWatchForUser(uid: string): Promise<CalendarWatch | null>;
   getCalendarWatchByChannelId(
     channelId: string,
   ): Promise<{ uid: string; watch: CalendarWatch } | null>;
@@ -97,6 +98,8 @@ export class UserRepositoryError extends Error {
 
 export class UserRepository implements IUserRepository {
   private readonly collection = db.collection(USERS_COLLECTION);
+
+  // ─── Gmail ───────────────────────────────────────────────────────────────────
 
   // ─── Gmail ───────────────────────────────────────────────────────────────────
 
@@ -135,6 +138,8 @@ export class UserRepository implements IUserRepository {
       );
     }
   }
+
+  // ─── Calendar OAuth ───────────────────────────────────────────────────────────
 
   // ─── Calendar OAuth ───────────────────────────────────────────────────────────
 
@@ -216,6 +221,20 @@ export class UserRepository implements IUserRepository {
     } catch (error) {
       throw new UserRepositoryError(
         `No se pudo guardar el calendarWatch para el usuario ${uid}.`,
+        error,
+      );
+    }
+  }
+
+  async getCalendarWatchForUser(uid: string): Promise<CalendarWatch | null> {
+    try {
+      const snapshot = await this.collection.doc(uid).get();
+      if (!snapshot.exists) return null;
+      const watch = snapshot.data()?.calendarWatch as CalendarWatch | undefined;
+      return watch ?? null;
+    } catch (error) {
+      throw new UserRepositoryError(
+        `No se pudo obtener el calendarWatch para el usuario ${uid}.`,
         error,
       );
     }

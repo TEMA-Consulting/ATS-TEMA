@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import type { CandidacyNoteDTO } from '@ats/shared-types';
 import {
   STAGE_LABELS,
@@ -23,6 +24,8 @@ import {
   CANDIDATE_STAGE_TO_APP_STAGE,
   getAvailableRecruiterStages,
   isTerminalApplicationStage,
+  resolveAuthWarning,
+  type AuthWarning,
 } from '../utils/candidateProfile.utils';
 import {
   PIPELINE_ORDER,
@@ -30,6 +33,8 @@ import {
   type PreviewApplicationStageEmailResponse,
   type StageHistoryEntry,
 } from '@ats/shared-types';
+import { useEmployeeProfile } from '../../calendar/hooks/useEmployeeProfile';
+import { emailLogsQueryKey } from './useEmailLogs';
 
 type SnackbarState = { message: string; severity: 'success' | 'error' } | null;
 
@@ -105,6 +110,8 @@ function toVisibleStageHistory(
 }
 
 export function useCandidateProfile(candidate: CandidateMockProfile) {
+  const queryClient = useQueryClient();
+  const { employee } = useEmployeeProfile();
   const [cvModalOpen, setCvModalOpen] = useState(false);
   const [interviewModalOpen, setInterviewModalOpen] = useState(false);
   const [interviewType, setInterviewType] = useState<'tech' | 'hr'>('tech');
@@ -122,6 +129,7 @@ export function useCandidateProfile(candidate: CandidateMockProfile) {
   const [isUpdatingStage, setIsUpdatingStage] = useState(false);
   const [isPreviewingStageEmail, setIsPreviewingStageEmail] = useState(false);
   const [snackbar, setSnackbar] = useState<SnackbarState>(null);
+  const [authWarning, setAuthWarning] = useState<AuthWarning>(null);
   const [stageEmailPreview, setStageEmailPreview] =
     useState<PreviewApplicationStageEmailResponse | null>(null);
 
@@ -308,29 +316,6 @@ export function useCandidateProfile(candidate: CandidateMockProfile) {
     canManageNotes,
   ]);
 
-  const handlePreviewStageChange = useCallback(async () => {
-    if (!selectedStageKey) return;
-
-    setIsPreviewingStageEmail(true);
-    try {
-      const preview = await previewApplicationStageEmail({
-        applicationId: candidate.applicationId,
-        stage: CANDIDATE_STAGE_TO_APP_STAGE[selectedStageKey],
-      });
-
-      setStageEmailPreview(preview);
-      setStageDialogOpen(false);
-      setStageEmailPreviewOpen(true);
-    } catch {
-      setSnackbar({
-        message: 'No se pudo previsualizar el email',
-        severity: 'error',
-      });
-    } finally {
-      setIsPreviewingStageEmail(false);
-    }
-  }, [selectedStageKey, candidate.applicationId]);
-
   const handleStageChange = useCallback(async () => {
     if (!selectedStageKey) return;
 
@@ -372,9 +357,12 @@ export function useCandidateProfile(candidate: CandidateMockProfile) {
       setSelectedStageKey('');
       setSnackbar({
         message: stageEmailPreview?.hasEmail
-          ? 'Se cambio de etapa y se envio el correo'
+          ? 'Se cambió la etapa y se envió el correo'
           : `Etapa actualizada a "${STAGE_LABELS[selectedStageKey]}"`,
         severity: 'success',
+      });
+      queryClient.invalidateQueries({
+        queryKey: emailLogsQueryKey(candidate.id),
       });
       refreshStageHistory().catch(() => {});
     } catch {
@@ -388,10 +376,49 @@ export function useCandidateProfile(candidate: CandidateMockProfile) {
   }, [
     selectedStageKey,
     candidate.applicationId,
+    candidate.id,
+    queryClient,
     refreshStageHistory,
     stageEmailPreview?.hasEmail,
     currentApplicationStage,
   ]);
+
+  const handlePreviewStageChange = useCallback(async () => {
+    if (!selectedStageKey) return;
+
+    const targetStage = CANDIDATE_STAGE_TO_APP_STAGE[selectedStageKey];
+    if (targetStage) {
+      const warning = resolveAuthWarning(targetStage, employee);
+      if (warning) {
+        setAuthWarning(warning);
+        return;
+      }
+    }
+
+    setIsPreviewingStageEmail(true);
+    try {
+      const preview = await previewApplicationStageEmail({
+        applicationId: candidate.applicationId,
+        stage: CANDIDATE_STAGE_TO_APP_STAGE[selectedStageKey],
+      });
+
+      if (preview.hasEmail) {
+        setStageEmailPreview(preview);
+        setStageDialogOpen(false);
+        setStageEmailPreviewOpen(true);
+      } else {
+        setStageDialogOpen(false);
+        await handleStageChange();
+      }
+    } catch {
+      setSnackbar({
+        message: 'No se pudo cambiar la etapa',
+        severity: 'error',
+      });
+    } finally {
+      setIsPreviewingStageEmail(false);
+    }
+  }, [selectedStageKey, candidate.applicationId, employee, handleStageChange]);
 
   const handleReject = useCallback(async () => {
     if (!rejectReason.trim()) return;
@@ -411,6 +438,9 @@ export function useCandidateProfile(candidate: CandidateMockProfile) {
       setRejectDialogOpen(false);
       setRejectReason('');
       setSnackbar({ message: 'Candidato rechazado', severity: 'success' });
+      queryClient.invalidateQueries({
+        queryKey: emailLogsQueryKey(candidate.id),
+      });
       refreshStageHistory().catch(() => {});
     } catch {
       setSnackbar({
@@ -420,7 +450,13 @@ export function useCandidateProfile(candidate: CandidateMockProfile) {
     } finally {
       setIsUpdatingStage(false);
     }
-  }, [rejectReason, candidate.applicationId, refreshStageHistory]);
+  }, [
+    rejectReason,
+    candidate.applicationId,
+    candidate.id,
+    queryClient,
+    refreshStageHistory,
+  ]);
 
   const handleOfferSent = useCallback(() => {
     setStageHistory((current) => applyStageChange(current, 'oferta_enviada'));
@@ -444,6 +480,9 @@ export function useCandidateProfile(candidate: CandidateMockProfile) {
         message: 'Candidato marcado como contratado',
         severity: 'success',
       });
+      queryClient.invalidateQueries({
+        queryKey: emailLogsQueryKey(candidate.id),
+      });
       refreshStageHistory().catch(() => {});
     } catch {
       setSnackbar({
@@ -453,7 +492,7 @@ export function useCandidateProfile(candidate: CandidateMockProfile) {
     } finally {
       setIsUpdatingStage(false);
     }
-  }, [candidate.applicationId, refreshStageHistory]);
+  }, [candidate.applicationId, candidate.id, queryClient, refreshStageHistory]);
 
   const handleInterviewSave = useCallback(async () => {
     setInterviewModalOpen(false);
@@ -507,6 +546,9 @@ export function useCandidateProfile(candidate: CandidateMockProfile) {
     startEditingNote,
     cancelEditingNote,
     handleSaveEditedNote,
+    authWarning,
+    setAuthWarning,
+    employee,
     handlePreviewStageChange,
     handleStageChange,
     handleReject,
