@@ -26,7 +26,7 @@ coverage
 out/
 build
 dist
-
+apps/functions/lib/
 
 # Debug
 pnpm-debug.log*
@@ -39,3 +39,12 @@ firebase-debug.log
 
 #Turborepo
 .turbo
+apps/functions/lib/*
+
+#Local
+.pnpm-store/
+apps/functions/firestore-debug.log
+emulator-data/
+firebase-export-*/
+firestore-debug.log
+.secret.local

@@ -41,7 +41,7 @@ The application is built with **Next.js 15** (frontend) and **Firebase** (backen
 | Database        | Cloud Firestore                       | Flexible schema, realtime when needed     |
 | Auth            | Firebase Auth                         | JWT, roles via Custom Claims              |
 | Storage         | Firebase Storage                      | CV files, offer PDFs                      |
-| AI              | OpenAI GPT-4o-mini                    | CV parsing, skill extraction, scoring     |
+| AI              | Vertex AI (Gemini 1.5 Flash)          | CV parsing, skill extraction, scoring     |
 | Types           | TypeScript (strict mode)              | Shared types between front and back       |
 | Package manager | pnpm workspaces                       | Monorepo, shared packages                 |
 | Monorepo        | Turborepo                             | Parallel builds, caching                  |
@@ -83,12 +83,21 @@ ats-tema/
 │   │           ├── hooks/               # Custom React hooks
 │   │           └── lib/                 # Firebase init, config, utilities
 │   │
-│   └── functions/                       # Firebase Cloud Functions
+│   └── functions/                       # Firebase Cloud Functions Backend
 │       └── src/
-│           ├── triggers/                # 5 Firestore/Storage event handlers
-│           ├── services/                # Orchestration — calls ai/ and repositories
-│           ├── ai/                      # CV parsing, scoring, fit calculation
-│           └── repositories/            # Firestore writes — mirrors web pattern (ADD)
+│           ├── callables/               # Entity HTTPS Callables (named exports, camelCase)
+│           │   └── candidateCallables.ts
+│           ├── triggers/                # Background event handlers (camelCase)
+│           │   └── onCvUploaded.ts
+│           ├── services/                # Domain core orchestration layer (camelCase)
+│           │   └── candidateService.ts
+│           ├── repositories/            # Database queries matching active interfaces (camelCase)
+│           │   └── candidateRepository.ts
+│           ├── validators/              # Payload contract validators (camelCase)
+│           │   └── candidateValidator.ts
+│           ├── core/                    # Global initialization (camelCase)
+│           │   └── firebaseAdmin.ts
+│           └── index.ts                 # Root export gateway for triggers & callables
 │
 └── packages/
     └── shared-types/                    # DTOs and interfaces shared between apps
@@ -131,12 +140,12 @@ Every data entity has three files:
 
 ```typescript
 // This file never changes — not during development, not during migration
-import type { Job, CreateJobDto, UpdateJobDto } from "@ats/shared-types";
+import type { Job, CreateJobDto, UpdateJobDto } from '@ats/shared-types';
 
 export interface JobsRepository {
   findAll(): Promise<Job[]>;
   findById(id: string): Promise<Job | null>;
-  findByStatus(status: Job["status"]): Promise<Job[]>;
+  findByStatus(status: Job['status']): Promise<Job[]>;
   create(data: CreateJobDto): Promise<Job>;
   update(id: string, data: UpdateJobDto): Promise<Job>;
   archive(id: string): Promise<void>;
@@ -156,13 +165,13 @@ import {
   updateDoc,
   query,
   where,
-} from "firebase/firestore";
-import { db } from "@/shared/lib/firebase";
-import type { JobsRepository } from "../interfaces/jobs.repository";
-import type { Job, CreateJobDto, UpdateJobDto } from "@ats/shared-types";
+} from 'firebase/firestore';
+import { db } from '@/shared/lib/firebase';
+import type { JobsRepository } from '../interfaces/jobs.repository';
+import type { Job, CreateJobDto, UpdateJobDto } from '@ats/shared-types';
 
 export class FirebaseJobsRepository implements JobsRepository {
-  private col = collection(db, "jobs");
+  private col = collection(db, 'jobs');
 
   async findAll(): Promise<Job[]> {
     const snap = await getDocs(this.col);
@@ -170,12 +179,12 @@ export class FirebaseJobsRepository implements JobsRepository {
   }
 
   async findById(id: string): Promise<Job | null> {
-    const snap = await getDoc(doc(db, "jobs", id));
+    const snap = await getDoc(doc(db, 'jobs', id));
     return snap.exists() ? ({ id: snap.id, ...snap.data() } as Job) : null;
   }
 
-  async findByStatus(status: Job["status"]): Promise<Job[]> {
-    const q = query(this.col, where("status", "==", status));
+  async findByStatus(status: Job['status']): Promise<Job[]> {
+    const q = query(this.col, where('status', '==', status));
     const snap = await getDocs(q);
     return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Job);
   }
@@ -189,12 +198,12 @@ export class FirebaseJobsRepository implements JobsRepository {
   }
 
   async update(id: string, data: UpdateJobDto): Promise<Job> {
-    await updateDoc(doc(db, "jobs", id), data as Record<string, unknown>);
+    await updateDoc(doc(db, 'jobs', id), data as Record<string, unknown>);
     return { id, ...data } as Job;
   }
 
   async archive(id: string): Promise<void> {
-    await updateDoc(doc(db, "jobs", id), { status: "archived" });
+    await updateDoc(doc(db, 'jobs', id), { status: 'archived' });
   }
 }
 ```
@@ -203,9 +212,9 @@ export class FirebaseJobsRepository implements JobsRepository {
 
 ```typescript
 // To migrate: swap Firebase implementations for Postgres implementations here
-import { FirebaseJobsRepository } from "./firebase/jobs.firebase";
-import { FirebaseCandidatesRepository } from "./firebase/candidates.firebase";
-import { FirebaseApplicationsRepository } from "./firebase/applications.firebase";
+import { FirebaseJobsRepository } from './firebase/jobs.firebase';
+import { FirebaseCandidatesRepository } from './firebase/candidates.firebase';
+import { FirebaseApplicationsRepository } from './firebase/applications.firebase';
 
 export const jobsRepository = new FirebaseJobsRepository();
 export const candidatesRepository = new FirebaseCandidatesRepository();
@@ -216,18 +225,18 @@ export const applicationsRepository = new FirebaseApplicationsRepository();
 
 ```typescript
 // This file is identical whether the backend is Firebase or PostgreSQL
-import { jobsRepository } from "@/repositories";
-import type { Job, CreateJobDto } from "@ats/shared-types";
+import { jobsRepository } from '@/repositories';
+import type { Job, CreateJobDto } from '@ats/shared-types';
 
 export const jobsService = {
   async getOpenJobs(): Promise<Job[]> {
-    return jobsRepository.findByStatus("open");
+    return jobsRepository.findByStatus('open');
   },
 
   async createJob(data: CreateJobDto): Promise<Job> {
     // Business logic lives here, not in the repository
     if (!data.skills || data.skills.length === 0) {
-      throw new Error("A job must have at least one skill defined");
+      throw new Error('A job must have at least one skill defined');
     }
     return jobsRepository.create(data);
   },
@@ -238,11 +247,11 @@ export const jobsService = {
 
 ```typescript
 // Components never know where data comes from
-import { jobsService } from "../jobs.service";
+import { jobsService } from '../jobs.service';
 
 export function JobsList() {
   const { data: jobs } = useQuery({
-    queryKey: ["jobs", "open"],
+    queryKey: ['jobs', 'open'],
     queryFn: () => jobsService.getOpenJobs(),
   });
   // ...
@@ -403,13 +412,13 @@ className="w-full px-4 py-3 rounded-lg border-2 border-red-300 bg-red-50
 
 ```tsx
 /* Main card */
-className = "bg-white rounded-2xl shadow-xl overflow-hidden";
+className = 'bg-white rounded-2xl shadow-xl overflow-hidden';
 
 /* Card header with gradient */
-className = "bg-gradient-to-r from-blue-600 to-blue-700 px-8 py-6";
+className = 'bg-gradient-to-r from-blue-600 to-blue-700 px-8 py-6';
 
 /* Informational card */
-className = "bg-blue-50 rounded-xl p-6 border border-blue-100";
+className = 'bg-blue-50 rounded-xl p-6 border border-blue-100';
 ```
 
 #### Alerts and badges
@@ -427,13 +436,13 @@ className = "bg-blue-50 rounded-xl p-6 border border-blue-100";
 </div>;
 
 /* Success badge */
-className = "px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs";
+className = 'px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs';
 
 /* Info badge */
-className = "px-4 py-2 rounded-lg bg-blue-50 text-blue-700 text-sm";
+className = 'px-4 py-2 rounded-lg bg-blue-50 text-blue-700 text-sm';
 
 /* Neutral badge */
-className = "px-4 py-2 rounded-lg bg-slate-50 text-slate-700 text-sm";
+className = 'px-4 py-2 rounded-lg bg-slate-50 text-slate-700 text-sm';
 ```
 
 #### Icon containers
@@ -563,7 +572,7 @@ Before opening a PR for any UI change, verify every item:
   phone?: string
   cvStoragePath: string     # relative path in Firebase Storage
   parsedData: ParsedCV      # populated by Cloud Function after upload
-  cvParseStatus: 'pending' | 'processing' | 'done' | 'failed'
+  cvParseStatus: 'pending' | 'processing' | 'done' | 'failed' | 'not_required'
   registrationType: 'specific' | 'general'
   createdAt: string
 
@@ -686,11 +695,11 @@ Functions live in `apps/functions/src/triggers/`. Keep them thin — business lo
 
 ```typescript
 // triggers/on-stage-changed.ts
-import { onDocumentUpdated } from "firebase-functions/v2/firestore";
-import { emailService } from "../services/email.service";
+import { onDocumentUpdated } from 'firebase-functions/v2/firestore';
+import { emailService } from '../services/email.service';
 
 export const onStageChanged = onDocumentUpdated(
-  "applications/{id}",
+  'applications/{id}',
   async (event) => {
     const before = event.data?.before.data();
     const after = event.data?.after.data();
@@ -738,7 +747,7 @@ const jobs = await jobsService.getOpenJobs();
 
 // In a Client Component
 const { data, isLoading } = useQuery({
-  queryKey: ["jobs", jobId],
+  queryKey: ['jobs', jobId],
   queryFn: () => jobsService.getJobById(jobId),
 });
 
@@ -747,7 +756,7 @@ const mutation = useMutation({
   mutationFn: (stage: RecruiterStage) =>
     applicationsService.updateStage(appId, stage),
   onSuccess: () =>
-    queryClient.invalidateQueries({ queryKey: ["pipeline", jobId] }),
+    queryClient.invalidateQueries({ queryKey: ['pipeline', jobId] }),
 });
 ```
 
@@ -789,23 +798,27 @@ pnpm --filter ats-functions test
 
 ## 11. Code style
 
-- TypeScript strict mode — no `any`, no type assertions unless unavoidable and commented
-- No default exports in repositories, services, or utilities — named exports only. Default exports are allowed in Next.js pages and components (required by the framework)
-- Async/await throughout — no `.then()` chains
-- Error handling — every async function that calls Firebase or OpenAI must have a try/catch. Errors should be logged and re-thrown with context, not swallowed
-- No comments explaining what the code does — write code that explains itself. Comments are for explaining _why_ a non-obvious decision was made
+- **TypeScript strict mode** — no `any`, no type assertions unless unavoidable and commented.
+- **No default exports** in repositories, services, utilities, or cloud function modules — named exports only to guarantee strict type traceability. Default exports are allowed exclusively in Next.js pages and components as strictly required by the framework.
+- **Async/await throughout** — no `.then()` chains or unresolved asynchronous procedures.
+- **Error handling** — every async function that interacts with Firestore, Storage, or AI engines must include a robust try/catch block. Errors must be logged using the designated logger utility and re-thrown with proper context, never swallowed.
+- **Self-explanatory code** — write expressive code that documents itself. Inline comments must be reserved exclusively to explain _why_ a non-obvious technical or domain decision was made, never _what_ the code does.
+- **Backend Filename Normalization** — `kebab-case` is strictly discontinued for code files inside the backend app (`apps/functions`). All source code and asset files must follow `camelCase`.
+- **Entity Cohesion Grouping** — Backend structures under `apps/functions` must be grouped into unified entity files (`*Callables.ts`, `*Service.ts`, `*Repository.ts`, `*Validator.ts`) instead of separating files by individual procedural actions.
+- **Distributed Refactoring Policy (The Boy Scout Rule)** — The `candidate` module acts as the official architectural **Golden Path**. To protect the sprint capacity of our 6-person team, legacy procedural configurations (`jobs`, `applications`) must not be refactored in a single mass block. Developers are required to clean and restructure these components into the unifed `camelCase` entity pattern _incrementally_, right when they pick up a User Story that touches that specific domain.
 
 ### Naming conventions
 
-| Thing                 | Convention                                                 | Example                              |
-| --------------------- | ---------------------------------------------------------- | ------------------------------------ |
-| Files                 | kebab-case                                                 | `jobs.repository.ts`                 |
-| Interfaces            | PascalCase with I prefix only if needed for disambiguation | `JobsRepository`                     |
-| Classes               | PascalCase                                                 | `FirebaseJobsRepository`             |
-| Functions/methods     | camelCase                                                  | `findByStatus`                       |
-| Constants             | SCREAMING_SNAKE for true constants                         | `MAX_CV_SIZE_MB`                     |
-| React components      | PascalCase                                                 | `PipelineTable`                      |
-| Firestore collections | camelCase, plural                                          | `jobs`, `candidates`, `applications` |
+| Thing                     | Convention                                                   | Example                                                           |
+| :------------------------ | :----------------------------------------------------------- | :---------------------------------------------------------------- |
+| **Backend Code Files**    | camelCase                                                    | `candidateCallables.ts`, `candidateService.ts`, `onCvUploaded.ts` |
+| **Frontend Code Files**   | camelCase (for hooks, services, and utilities)               | `usePostulation.ts`, `postulation.service.ts`                     |
+| **Interfaces**            | PascalCase (with I prefix only if needed for disambiguation) | `JobsRepository`, `Candidate`, `Application`                      |
+| **Classes**               | PascalCase                                                   | `FirebaseJobsRepository`                                          |
+| **Functions / methods**   | camelCase                                                    | `findByStatus`, `registerCandidateCV`                             |
+| **Constants**             | SCREAMING_SNAKE for true constants                           | `MAX_CV_SIZE_MB`                                                  |
+| **React components**      | PascalCase                                                   | `PipelineTable`, `CvUploadView`, `MethodCard`                     |
+| **Firestore collections** | camelCase, plural                                            | `jobs`, `candidates`, `applications`                              |
 
 ---
 
@@ -858,10 +871,10 @@ cp apps/web/.env.example apps/web/.env.local
 cp apps/functions/.env.example apps/functions/.env
 
 # Start Firebase emulators (Firestore, Auth, Storage, Functions)
-firebase emulators:start
+firebase emulators:start --only auth,firestore,storage,functions
 
 # In a separate terminal, start Next.js dev server
-pnpm --filter ats-web dev
+pnpm turbo run dev --filter=@ats/web
 ```
 
 ### Required environment variables

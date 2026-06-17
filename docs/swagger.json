@@ -1,0 +1,5225 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "ATS HRMS — Cloud Functions API",
+    "description": "HTTP endpoints exposed as Firebase Cloud Functions (onRequest). Callable functions (onCall) use the Firebase SDK protocol and are documented here for reference with their logical payload shapes.\n\nBase URL pattern: `https://{region}-{project}.cloudfunctions.net/{functionName}`\n\nAuthentication: All protected endpoints require a Firebase ID token passed as `Authorization: Bearer <token>`. In the local emulator the token `dev-recruiter` bypasses verification and resolves to uid `recruiter-dev`.",
+    "version": "1.0.0",
+    "contact": {
+      "name": "ATS HRMS Team"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://us-central1-{project}.cloudfunctions.net",
+      "description": "Production",
+      "variables": {
+        "project": {
+          "default": "ats-hrms",
+          "description": "Firebase project ID"
+        }
+      }
+    },
+    {
+      "url": "http://localhost:5001/{project}/us-central1",
+      "description": "Local emulator",
+      "variables": {
+        "project": {
+          "default": "ats-hrms"
+        }
+      }
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "Firebase ID Token",
+        "description": "Firebase Auth ID token. In the emulator, use `dev-recruiter` (recruiter) or `dev-candidate` (candidate) as the token value."
+      }
+    },
+    "schemas": {
+      "ErrorResponse": {
+        "type": "object",
+        "required": ["error"],
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Human-readable error message"
+          }
+        }
+      },
+      "JobStatus": {
+        "type": "string",
+        "enum": ["draft", "open", "paused", "closed"]
+      },
+      "JobLocation": {
+        "type": "string",
+        "enum": ["remote", "on-site", "hybrid"]
+      },
+      "SkillType": {
+        "type": "string",
+        "enum": ["mandatory", "desirable"]
+      },
+      "Skill": {
+        "type": "object",
+        "required": ["name", "weight", "type"],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "weight": {
+            "type": "number",
+            "description": "Relative weight for score calculation"
+          },
+          "type": {
+            "$ref": "#/components/schemas/SkillType"
+          }
+        }
+      },
+      "Job": {
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "department",
+          "seniority",
+          "location",
+          "description",
+          "skills",
+          "slug",
+          "status",
+          "responsabilities",
+          "benefits",
+          "hiringManagerId",
+          "createdAt",
+          "updatedAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "department": {
+            "type": "string"
+          },
+          "seniority": {
+            "type": "string"
+          },
+          "location": {
+            "$ref": "#/components/schemas/JobLocation"
+          },
+          "city": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "skills": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Skill"
+            }
+          },
+          "requirements": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "observations": {
+            "type": "string"
+          },
+          "additionalCriteria": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "slug": {
+            "type": "string"
+          },
+          "salaryMin": {
+            "type": "number"
+          },
+          "salaryMax": {
+            "type": "number"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "description": "e.g. Full-time, Part-time"
+          },
+          "candidates": {
+            "type": "number"
+          },
+          "status": {
+            "$ref": "#/components/schemas/JobStatus"
+          },
+          "responsabilities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "benefits": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "hiringManagerId": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "closedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "publishedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "OfferStatus": {
+        "type": "string",
+        "enum": [
+          "draft",
+          "sent",
+          "accepted",
+          "declined",
+          "expired",
+          "cancelled"
+        ]
+      },
+      "Offer": {
+        "type": "object",
+        "required": [
+          "id",
+          "applicationId",
+          "candidateId",
+          "jobId",
+          "status",
+          "candidateName",
+          "candidateEmail",
+          "jobTitle",
+          "createdBy",
+          "createdAt",
+          "updatedAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "applicationId": {
+            "type": "string"
+          },
+          "candidateId": {
+            "type": "string"
+          },
+          "jobId": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/OfferStatus"
+          },
+          "candidateName": {
+            "type": "string"
+          },
+          "candidateEmail": {
+            "type": "string",
+            "format": "email"
+          },
+          "jobTitle": {
+            "type": "string"
+          },
+          "compensation": {
+            "type": "string"
+          },
+          "startDate": {
+            "type": "string"
+          },
+          "modality": {
+            "type": "string"
+          },
+          "id": { "type": "string" },
+          "offerId": {
+            "type": "string",
+            "description": "Present when the email attempt belongs to an offer letter"
+          },
+          "applicationId": { "type": "string" },
+          "candidateId": { "type": "string" },
+          "jobId": { "type": "string" },
+          "status": { "$ref": "#/components/schemas/OfferStatus" },
+          "candidateName": { "type": "string" },
+          "candidateEmail": { "type": "string", "format": "email" },
+          "jobTitle": { "type": "string" },
+          "compensation": { "type": "string" },
+          "startDate": { "type": "string" },
+          "modality": { "type": "string" },
+          "benefits": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "expirationDate": {
+            "type": "string"
+          },
+          "observations": {
+            "type": "string"
+          },
+          "templateId": {
+            "type": "string"
+          },
+          "templateVersion": {
+            "type": "string"
+          },
+          "documentStoragePath": {
+            "type": "string"
+          },
+          "documentHash": {
+            "type": "string"
+          },
+          "tokenHash": {
+            "type": "string",
+            "description": "SHA-256 hash of the public token. The plain token is never persisted."
+          },
+          "tokenExpiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "tokenUsedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "sentAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "sentBy": {
+            "type": "string"
+          },
+          "acceptedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "declinedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "acceptedByName": {
+            "type": "string"
+          },
+          "acceptedByEmail": {
+            "type": "string",
+            "format": "email"
+          },
+          "responseFromIp": {
+            "type": "string"
+          },
+          "responseUserAgent": {
+            "type": "string"
+          },
+          "declineReason": {
+            "type": "string"
+          },
+          "createdBy": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CreateOfferDraftRequest": {
+        "type": "object",
+        "required": ["applicationId"],
+        "properties": {
+          "applicationId": {
+            "type": "string"
+          },
+          "compensation": {
+            "type": "string",
+            "description": "Overrides the compensation text. If omitted, job salary/currency defaults can be used."
+          },
+          "startDate": {
+            "type": "string"
+          },
+          "modality": {
+            "type": "string",
+            "description": "Overrides the job modality/location label."
+          },
+          "benefits": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Overrides job benefits. If omitted, defaults from the job are used."
+          },
+          "expirationDate": {
+            "type": "string"
+          },
+          "observations": {
+            "type": "string"
+          },
+          "templateId": {
+            "type": "string"
+          }
+        }
+      },
+      "CreateOfferDraftResponse": {
+        "type": "object",
+        "required": ["offer"],
+        "properties": {
+          "offer": {
+            "$ref": "#/components/schemas/Offer"
+          }
+        }
+      },
+      "UpdateOfferDraftRequest": {
+        "type": "object",
+        "required": ["offerId"],
+        "properties": {
+          "offerId": { "type": "string" },
+          "compensation": { "type": "string" },
+          "startDate": { "type": "string" },
+          "modality": { "type": "string" },
+          "benefits": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "expirationDate": { "type": "string" },
+          "observations": { "type": "string" }
+        }
+      },
+      "UpdateOfferDraftResponse": {
+        "type": "object",
+        "required": ["offer"],
+        "properties": {
+          "offer": { "$ref": "#/components/schemas/Offer" }
+        }
+      },
+      "PreviewOfferRequest": {
+        "type": "object",
+        "required": ["offerId"],
+        "properties": {
+          "offerId": { "type": "string" }
+        }
+      },
+      "PreviewOfferResponse": {
+        "type": "object",
+        "required": ["documentHtml"],
+        "properties": {
+          "documentHtml": { "type": "string" }
+        }
+      },
+      "SendOfferRequest": {
+        "type": "object",
+        "required": ["offerId"],
+        "properties": {
+          "offerId": {
+            "type": "string"
+          }
+        }
+      },
+      "SendOfferResponse": {
+        "type": "object",
+        "required": ["offer", "publicUrl"],
+        "properties": {
+          "offer": {
+            "$ref": "#/components/schemas/Offer"
+          },
+          "publicUrl": {
+            "type": "string",
+            "format": "uri",
+            "description": "Public secure link containing the plain token. Only tokenHash is stored in Firestore."
+          }
+        }
+      },
+      "GetOfferByApplicationResponse": {
+        "type": "object",
+        "required": ["offer"],
+        "properties": {
+          "offer": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Offer"
+              }
+            ],
+            "nullable": true
+          }
+        }
+      },
+      "PublicOfferResponse": {
+        "type": "object",
+        "required": [
+          "offerId",
+          "status",
+          "candidateName",
+          "candidateEmail",
+          "jobTitle",
+          "documentHtml"
+        ],
+        "properties": {
+          "offerId": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/OfferStatus"
+          },
+          "candidateName": {
+            "type": "string"
+          },
+          "candidateEmail": {
+            "type": "string",
+            "format": "email"
+          },
+          "jobTitle": {
+            "type": "string"
+          },
+          "compensation": {
+            "type": "string"
+          },
+          "startDate": {
+            "type": "string"
+          },
+          "modality": {
+            "type": "string"
+          },
+          "benefits": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "expirationDate": {
+            "type": "string"
+          },
+          "observations": {
+            "type": "string"
+          },
+          "documentHtml": {
+            "type": "string",
+            "description": "Generated offer letter HTML shown to the candidate."
+          }
+        }
+      },
+      "RespondOfferRequest": {
+        "type": "object",
+        "required": ["token", "action"],
+        "properties": {
+          "token": {
+            "type": "string"
+          },
+          "action": {
+            "type": "string",
+            "enum": ["accept", "decline"]
+          },
+          "signerName": {
+            "type": "string",
+            "description": "Required when action is accept."
+          },
+          "declineReason": {
+            "type": "string"
+          }
+        }
+      },
+      "RespondOfferResponse": {
+        "type": "object",
+        "required": ["offerId", "status"],
+        "properties": {
+          "offerId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["accepted", "declined"]
+          }
+        }
+      },
+      "ApplicationStage": {
+        "type": "string",
+        "enum": [
+          "profile_pending",
+          "applied",
+          "screening",
+          "cv_submitted",
+          "schedule_hr_1",
+          "hr_1_scheduled",
+          "hr_1_done",
+          "schedule_hr_2",
+          "hr_2_scheduled",
+          "hr_2_done",
+          "schedule_tech_1",
+          "tech_1_scheduled",
+          "tech_1_done",
+          "schedule_tech_2",
+          "tech_2_scheduled",
+          "tech_2_done",
+          "send_offer",
+          "offer_sent",
+          "hired",
+          "rejected",
+          "withdrawn"
+        ]
+      },
+      "ApplicationStatus": {
+        "type": "string",
+        "enum": ["active", "draft", "rejected", "withdrawn", "hired"]
+      },
+      "CvParseStatus": {
+        "type": "string",
+        "enum": ["not_required", "pending", "processing", "done", "failed"]
+      },
+      "SkillMatchDetail": {
+        "type": "object",
+        "required": ["name", "weight", "type"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Original name of the skill required by the position"
+          },
+          "weight": {
+            "type": "number",
+            "description": "Relative weight configured for the position"
+          },
+          "type": {
+            "$ref": "#/components/schemas/SkillType"
+          }
+        }
+      },
+      "SkillMatchStats": {
+        "type": "object",
+        "description": "Deterministic weighted skill match calculated when an application is created and recalculated when candidate or position skills change",
+        "required": [
+          "scoreTotal",
+          "scoreMandatory",
+          "scoreDesirable",
+          "tieneTodosLosMandatorios",
+          "skillsCoincidentes",
+          "skillsFaltantes",
+          "actualizadoEn"
+        ],
+        "properties": {
+          "scoreTotal": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "scoreMandatory": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "scoreDesirable": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "tieneTodosLosMandatorios": {
+            "type": "boolean"
+          },
+          "skillsCoincidentes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SkillMatchDetail"
+            }
+          },
+          "skillsFaltantes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SkillMatchDetail"
+            }
+          },
+          "actualizadoEn": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ApplicationWithCandidateDTO": {
+        "type": "object",
+        "required": [
+          "id",
+          "jobId",
+          "candidateId",
+          "stage",
+          "status",
+          "createdAt",
+          "updatedAt",
+          "stageUpdatedAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "jobId": {
+            "type": "string"
+          },
+          "candidateId": {
+            "type": "string"
+          },
+          "stage": {
+            "$ref": "#/components/schemas/ApplicationStage"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ApplicationStatus"
+          },
+          "fitScore": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Deterministic total score. Omitted while no valid calculation is available; 0 means a valid calculation with no matches."
+          },
+          "coverLetter": {
+            "type": "string"
+          },
+          "skillMatchStats": {
+            "$ref": "#/components/schemas/SkillMatchStats"
+          },
+          "candidateName": {
+            "type": "string"
+          },
+          "candidateEmail": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "rejectionReason": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "stageUpdatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "StageHistoryEntry": {
+        "type": "object",
+        "required": ["id", "stage", "changedAt", "changedBy", "changedByEmail"],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "stage": {
+            "$ref": "#/components/schemas/ApplicationStage"
+          },
+          "changedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "changedBy": {
+            "type": "string",
+            "description": "UID of the user who changed the stage"
+          },
+          "changedByEmail": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "rejectionReason": {
+            "type": "string"
+          }
+        }
+      },
+      "ParsedExperience": {
+        "type": "object",
+        "properties": {
+          "company": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "startDate": {
+            "type": "string"
+          },
+          "endDate": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "ParsedEducation": {
+        "type": "object",
+        "properties": {
+          "institution": {
+            "type": "string"
+          },
+          "degree": {
+            "type": "string"
+          },
+          "field": {
+            "type": "string"
+          },
+          "startDate": {
+            "type": "string"
+          },
+          "endDate": {
+            "type": "string"
+          }
+        }
+      },
+      "ApplicationDetailCandidateDTO": {
+        "type": "object",
+        "required": ["id"],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "fullName": {
+            "type": "string"
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "description": "Canonical phone number persisted using digits only."
+          },
+          "location": {
+            "type": "string"
+          },
+          "yearsOfExperience": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 60
+          },
+          "education": {
+            "type": "string"
+          },
+          "technicalSkills": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "professionalSummary": {
+            "type": "string"
+          },
+          "parsedExperience": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ParsedExperience"
+            }
+          },
+          "parsedEducation": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ParsedEducation"
+            }
+          },
+          "cvStoragePath": {
+            "type": "string",
+            "nullable": true,
+            "description": "Firebase Storage path, e.g. cvs/candidateId/cv.pdf. Null if no CV uploaded."
+          }
+        }
+      },
+      "ApplicationDetailDTO": {
+        "type": "object",
+        "required": [
+          "id",
+          "stage",
+          "status",
+          "createdAt",
+          "updatedAt",
+          "stageUpdatedAt",
+          "candidate",
+          "job"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "stage": {
+            "$ref": "#/components/schemas/ApplicationStage"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ApplicationStatus"
+          },
+          "fitScore": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Deterministic total score. Omitted while no valid calculation is available; 0 means a valid calculation with no matches."
+          },
+          "skillMatchStats": {
+            "$ref": "#/components/schemas/SkillMatchStats"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "coverLetter": {
+            "type": "string"
+          },
+          "rejectionReason": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "stageUpdatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "candidate": {
+            "$ref": "#/components/schemas/ApplicationDetailCandidateDTO"
+          },
+          "job": {
+            "type": "object",
+            "required": ["id", "title", "skills"],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "skills": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Skill"
+                }
+              }
+            }
+          }
+        }
+      },
+      "CandidatePostulationBase": {
+        "type": "object",
+        "required": ["firstName", "lastName", "email", "phone"],
+        "properties": {
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Normalized to lowercase and persisted without spaces."
+          },
+          "phone": {
+            "type": "string",
+            "description": "Accepts formatted input; the backend persists digits only."
+          },
+          "location": {
+            "type": "string"
+          },
+          "desiredPosition": {
+            "type": "string"
+          },
+          "yearsOfExperience": {
+            "type": "number",
+            "description": "Values outside this range or non-integer values are omitted."
+          },
+          "education": {
+            "type": "string"
+          },
+          "technicalSkills": {
+            "type": "array",
+            "description": "Trimmed and deduplicated by the backend.",
+            "items": {
+              "type": "string"
+            }
+          },
+          "professionalSummary": {
+            "type": "string"
+          },
+          "parsedExperience": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ParsedExperience"
+            }
+          },
+          "parsedEducation": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ParsedEducation"
+            }
+          }
+        }
+      },
+      "CandidateProfileForConfirmation": {
+        "type": "object",
+        "description": "Canonical candidate profile fields populated by manual input or CV parsing. All fields are optional because parsing can still be pending, processing, or failed.",
+        "properties": {
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Normalized to lowercase and persisted without spaces."
+          },
+          "phone": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "description": "Canonical phone number persisted using digits only."
+          },
+          "location": {
+            "type": "string"
+          },
+          "yearsOfExperience": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 60
+          },
+          "education": {
+            "type": "string"
+          },
+          "technicalSkills": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "professionalSummary": {
+            "type": "string"
+          },
+          "parsedExperience": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ParsedExperience"
+            }
+          },
+          "parsedEducation": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ParsedEducation"
+            }
+          }
+        }
+      },
+      "EmployeeRole": {
+        "type": "string",
+        "enum": ["hr", "tech_lead", "hiring_manager", "admin"]
+      },
+      "EmailTemplateStage": {
+        "type": "string",
+        "enum": [
+          "application_received",
+          "screening",
+          "interview_hr",
+          "interview_technical",
+          "interview_final",
+          "offer",
+          "hired",
+          "rejected",
+          "withdrawn"
+        ],
+        "description": "Business-friendly stage key used to associate an email template with a recruiter pipeline stage"
+      },
+      "EmailLogStatus": {
+        "type": "string",
+        "enum": ["pending", "sent", "failed"]
+      },
+      "EmailLog": {
+        "type": "object",
+        "required": [
+          "id",
+          "applicationId",
+          "candidateId",
+          "candidateEmail",
+          "jobId",
+          "templateId",
+          "templateName",
+          "stage",
+          "subject",
+          "body",
+          "status",
+          "recruiterId",
+          "recruiterEmail",
+          "attemptedAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "applicationId": {
+            "type": "string"
+          },
+          "candidateId": {
+            "type": "string"
+          },
+          "candidateEmail": {
+            "type": "string",
+            "format": "email"
+          },
+          "jobId": {
+            "type": "string"
+          },
+          "templateId": {
+            "type": "string"
+          },
+          "templateName": {
+            "type": "string"
+          },
+          "stage": {
+            "$ref": "#/components/schemas/ApplicationStage"
+          },
+          "subject": {
+            "type": "string",
+            "description": "Resolved subject — template variables already substituted"
+          },
+          "body": {
+            "type": "string",
+            "description": "Resolved HTML body — template variables already substituted"
+          },
+          "status": {
+            "$ref": "#/components/schemas/EmailLogStatus"
+          },
+          "error": {
+            "type": "string",
+            "description": "Present only when status is `failed`"
+          },
+          "recruiterId": {
+            "type": "string"
+          },
+          "recruiterEmail": {
+            "type": "string",
+            "format": "email"
+          },
+          "attemptedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "sentAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Present only when status is `sent`"
+          }
+        }
+      },
+      "BooleanOkResponse": {
+        "type": "object",
+        "required": ["ok"],
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
+      "BooleanSuccessResponse": {
+        "type": "object",
+        "required": ["success"],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
+      "DeletePositionRequest": {
+        "type": "object",
+        "required": ["id"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Position/job id to delete"
+          }
+        }
+      },
+      "DeletePositionResponse": {
+        "type": "object",
+        "required": ["ok"],
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
+      "DiscardCandidateDraftRequest": {
+        "type": "object",
+        "required": ["candidateId", "applicationId"],
+        "properties": {
+          "candidateId": {
+            "type": "string"
+          },
+          "applicationId": {
+            "type": "string"
+          }
+        }
+      },
+      "DiscardCandidateDraftResponse": {
+        "type": "object",
+        "required": ["candidateId", "applicationId", "discarded"],
+        "properties": {
+          "candidateId": {
+            "type": "string"
+          },
+          "applicationId": {
+            "type": "string"
+          },
+          "discarded": {
+            "type": "boolean",
+            "enum": [true]
+          }
+        }
+      },
+      "InterviewFormType": {
+        "type": "string",
+        "enum": ["hr", "tech"]
+      },
+      "SaveInterviewFormQuestionInput": {
+        "type": "object",
+        "required": ["question", "answer"],
+        "properties": {
+          "question": {
+            "type": "string"
+          },
+          "answer": {
+            "type": "string"
+          },
+          "rating": {
+            "type": "number"
+          }
+        }
+      },
+      "SaveInterviewFormRequest": {
+        "type": "object",
+        "required": [
+          "applicationId",
+          "type",
+          "title",
+          "overallRating",
+          "decision",
+          "questions"
+        ],
+        "properties": {
+          "applicationId": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/InterviewFormType"
+          },
+          "title": {
+            "type": "string"
+          },
+          "overallRating": {
+            "type": "number"
+          },
+          "decision": {
+            "type": "string"
+          },
+          "questions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SaveInterviewFormQuestionInput"
+            }
+          }
+        }
+      },
+      "SaveInterviewFormResponse": {
+        "type": "object",
+        "required": ["id", "submittedAt"],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "submittedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "InterviewFormQuestion": {
+        "type": "object",
+        "required": ["id", "question", "answer"],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "question": {
+            "type": "string"
+          },
+          "answer": {
+            "type": "string"
+          },
+          "rating": {
+            "type": "number"
+          }
+        }
+      },
+      "InterviewForm": {
+        "type": "object",
+        "required": [
+          "id",
+          "applicationId",
+          "type",
+          "title",
+          "authorUid",
+          "authorName",
+          "authorRole",
+          "submittedAt",
+          "questions"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "applicationId": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/InterviewFormType"
+          },
+          "title": {
+            "type": "string"
+          },
+          "authorUid": {
+            "type": "string"
+          },
+          "authorName": {
+            "type": "string"
+          },
+          "authorRole": {
+            "type": "string"
+          },
+          "submittedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "overallRating": {
+            "type": "number"
+          },
+          "decision": {
+            "type": "string"
+          },
+          "questions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InterviewFormQuestion"
+            }
+          }
+        }
+      },
+      "CandidacyNoteSource": {
+        "type": "string",
+        "enum": ["manual", "interview"]
+      },
+      "SaveCandidacyNoteRequest": {
+        "type": "object",
+        "required": ["applicationId", "text"],
+        "properties": {
+          "applicationId": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/components/schemas/CandidacyNoteSource"
+          }
+        }
+      },
+      "SaveCandidacyNoteResponse": {
+        "type": "object",
+        "required": ["id", "createdAt", "updatedAt"],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "UpdateCandidacyNoteRequest": {
+        "type": "object",
+        "required": ["applicationId", "id", "text"],
+        "properties": {
+          "applicationId": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string",
+            "description": "Candidacy note id"
+          },
+          "text": {
+            "type": "string"
+          }
+        }
+      },
+      "CandidacyNote": {
+        "type": "object",
+        "required": [
+          "id",
+          "applicationId",
+          "text",
+          "source",
+          "authorUid",
+          "authorName",
+          "authorRole",
+          "createdAt",
+          "updatedAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "applicationId": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/components/schemas/CandidacyNoteSource"
+          },
+          "authorUid": {
+            "type": "string"
+          },
+          "authorName": {
+            "type": "string"
+          },
+          "authorRole": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ExchangeOAuthCodeRequest": {
+        "type": "object",
+        "required": ["code", "redirectUri"],
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "redirectUri": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdateCalendarLinkRequest": {
+        "type": "object",
+        "required": ["calendarLink"],
+        "properties": {
+          "calendarLink": {
+            "type": "string",
+            "description": "HTTPS calendar scheduling URL, or empty string to clear it"
+          }
+        }
+      },
+      "SetUserRoleOnboardingRequest": {
+        "type": "object",
+        "required": ["role"],
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": ["hr", "area_leader"]
+          }
+        }
+      },
+      "SeedGmailCredentialRequest": {
+        "type": "object",
+        "required": ["uid", "accessToken", "refreshToken"],
+        "properties": {
+          "uid": {
+            "type": "string"
+          },
+          "accessToken": {
+            "type": "string"
+          },
+          "refreshToken": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": "number"
+          }
+        }
+      },
+      "SeedEmployeeInput": {
+        "type": "object",
+        "required": ["uid", "email", "name", "role"],
+        "properties": {
+          "uid": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "calendarLink": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Health",
+      "description": "Service health check"
+    },
+    {
+      "name": "Jobs (Public)",
+      "description": "Public job listing endpoints — no authentication required"
+    },
+    {
+      "name": "Jobs (Internal)",
+      "description": "Internal position management — requires recruiter/admin role"
+    },
+    {
+      "name": "Candidates",
+      "description": "Candidate registration and postulation flow"
+    },
+    {
+      "name": "Applications",
+      "description": "Application management and pipeline operations"
+    },
+    {
+      "name": "Auth / Admin",
+      "description": "User role assignment and employee provisioning"
+    },
+    {
+      "name": "Email Templates",
+      "description": "Gmail OAuth connection and automated candidate communication via email templates"
+    },
+    {
+      "name": "Interviews",
+      "description": "Interview form capture and retrieval"
+    },
+    {
+      "name": "Candidacy Notes",
+      "description": "Internal notes attached to applications"
+    },
+    {
+      "name": "Calendar",
+      "description": "Google Calendar OAuth and employee calendar link management"
+    },
+    {
+      "name": "Development / Seeds",
+      "description": "Emulator-oriented seed utilities and development helpers"
+    }
+  ],
+  "paths": {
+    "/healthCheck": {
+      "get": {
+        "tags": ["Health"],
+        "operationId": "healthCheck",
+        "summary": "Service health check",
+        "description": "Returns the current health status of the Cloud Functions service. No authentication required.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Service is healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["status", "timestamp", "uptime"],
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "healthy"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "uptime": {
+                      "type": "number",
+                      "description": "Process uptime in seconds"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/listOpenJobs": {
+      "get": {
+        "tags": ["Jobs (Public)"],
+        "operationId": "listOpenJobs",
+        "summary": "List all open jobs",
+        "description": "Returns all jobs with status `open`. No authentication required. Used by the candidate-facing job board.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Array of open jobs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Job"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/getJobDetail": {
+      "get": {
+        "tags": ["Jobs (Public)"],
+        "operationId": "getJobDetail",
+        "summary": "Get public job detail",
+        "description": "Returns the full detail of a single job by its ID. No authentication required. Used by the candidate-facing job detail page.",
+        "security": [],
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Firestore document ID of the job"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Job detail",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Job"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid jobId",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Job not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/listPositions": {
+      "get": {
+        "tags": ["Jobs (Internal)"],
+        "operationId": "listPositions",
+        "summary": "List positions with filters and pagination",
+        "description": "Returns a paginated, filterable list of positions. Requires authentication.",
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Full-text search term applied to title and department"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/JobStatus"
+            },
+            "description": "Filter by job status"
+          },
+          {
+            "name": "location",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/JobLocation"
+            },
+            "description": "Filter by work location modality"
+          },
+          {
+            "name": "department",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter by department name"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1,
+              "minimum": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10,
+              "minimum": 1,
+              "maximum": 100
+            }
+          },
+          {
+            "name": "orderBy",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["publishedAt", "title", "department", "status"]
+            }
+          },
+          {
+            "name": "orderDir",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["asc", "desc"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of positions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["jobs", "total", "page", "totalPages"],
+                  "properties": {
+                    "jobs": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Job"
+                      }
+                    },
+                    "total": {
+                      "type": "integer"
+                    },
+                    "page": {
+                      "type": "integer"
+                    },
+                    "totalPages": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/listDepartments": {
+      "get": {
+        "tags": ["Jobs (Internal)"],
+        "operationId": "listDepartments",
+        "summary": "List all distinct departments",
+        "description": "Returns an array of unique department names across all jobs. Used to populate filter dropdowns.",
+        "responses": {
+          "200": {
+            "description": "Array of department names",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "example": ["Engineering", "Product", "Design"]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/getPosition": {
+      "get": {
+        "tags": ["Jobs (Internal)"],
+        "operationId": "getPosition",
+        "summary": "Get internal position detail by ID",
+        "description": "Returns full job detail for internal recruiter use. Includes all fields. Requires authentication.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Firestore document ID of the position"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Full job detail",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Job"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing id parameter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Position not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/createJob": {
+      "post": {
+        "tags": ["Jobs (Internal)"],
+        "operationId": "createJob",
+        "summary": "Create a new job position",
+        "description": "Creates a new job position. The `hiringManagerId` is automatically set to the authenticated user's UID. Requires authentication.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "title",
+                  "department",
+                  "seniority",
+                  "location",
+                  "description",
+                  "skills",
+                  "slug",
+                  "responsabilities",
+                  "benefits"
+                ],
+                "properties": {
+                  "title": {
+                    "type": "string"
+                  },
+                  "department": {
+                    "type": "string"
+                  },
+                  "seniority": {
+                    "type": "string"
+                  },
+                  "location": {
+                    "$ref": "#/components/schemas/JobLocation"
+                  },
+                  "city": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "skills": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/Skill"
+                    }
+                  },
+                  "requirements": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "observations": {
+                    "type": "string"
+                  },
+                  "additionalCriteria": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "slug": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string",
+                    "example": "Full-time"
+                  },
+                  "status": {
+                    "$ref": "#/components/schemas/JobStatus"
+                  },
+                  "responsabilities": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "benefits": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Job created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["id"],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Firestore document ID of the created job"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/updatePosition": {
+      "patch": {
+        "tags": ["Jobs (Internal)"],
+        "operationId": "updatePosition",
+        "summary": "Update a job position's fields",
+        "description": "Partial update of a job position. The `id` field is required; all other fields are optional. Status and salary fields are excluded from this endpoint — use `updatePositionStatus` for status changes.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["id"],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "Firestore document ID of the position"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "department": {
+                    "type": "string"
+                  },
+                  "seniority": {
+                    "type": "string"
+                  },
+                  "location": {
+                    "$ref": "#/components/schemas/JobLocation"
+                  },
+                  "city": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "skills": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/Skill"
+                    }
+                  },
+                  "requirements": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "observations": {
+                    "type": "string"
+                  },
+                  "additionalCriteria": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "slug": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string"
+                  },
+                  "responsabilities": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "benefits": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Position updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "example": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Position not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/updatePositionStatus": {
+      "patch": {
+        "tags": ["Jobs (Internal)"],
+        "operationId": "updatePositionStatus",
+        "summary": "Update a job position's status",
+        "description": "Dedicated endpoint for changing a position status (draft → open → paused → closed). Separated from `updatePosition` to enforce explicit status transitions.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["id", "status"],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "Firestore document ID of the position"
+                  },
+                  "status": {
+                    "$ref": "#/components/schemas/JobStatus"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Status updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "example": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Position not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/deletePosition": {
+      "delete": {
+        "tags": ["Jobs (Internal)"],
+        "operationId": "deletePosition",
+        "summary": "Delete a position",
+        "description": "Deletes a position/job by id. Requires an authenticated Firebase user.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeletePositionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Position deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeletePositionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Position not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Method not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/registerCandidate": {
+      "post": {
+        "tags": ["Candidates"],
+        "operationId": "registerCandidate",
+        "summary": "Register a candidate with manual profile data",
+        "description": "Registers a new candidate by submitting their profile data manually (no CV upload). Creates a `candidates` document and an `applications` document for the specified job. Returns 409 if the candidate is already registered for that job.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/CandidatePostulationBase"
+                  },
+                  {
+                    "type": "object",
+                    "required": ["jobId"],
+                    "properties": {
+                      "jobId": {
+                        "type": "string",
+                        "description": "Firestore document ID of the target job"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Candidate registered",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "candidateId",
+                    "applicationId",
+                    "cvParseStatus",
+                    "applicationStatus"
+                  ],
+                  "properties": {
+                    "candidateId": {
+                      "type": "string"
+                    },
+                    "applicationId": {
+                      "type": "string"
+                    },
+                    "cvParseStatus": {
+                      "$ref": "#/components/schemas/CvParseStatus"
+                    },
+                    "applicationStatus": {
+                      "$ref": "#/components/schemas/ApplicationStatus"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Candidate already registered for this job",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/registerCandidateCV": {
+      "post": {
+        "tags": ["Candidates"],
+        "operationId": "registerCandidateCV",
+        "summary": "Start a CV-based candidate registration",
+        "description": "Initializes a candidate registration flow via CV upload. Creates a `candidates` document with `cvParseStatus: pending` and returns an `uploadBasePath` in Firebase Storage where the frontend must upload the CV PDF. The `onCVUploaded` trigger then parses the CV and populates `parsedData`.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["jobId"],
+                "properties": {
+                  "jobId": {
+                    "type": "string",
+                    "description": "Firestore document ID of the target job"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Registration initiated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "candidateId",
+                    "applicationId",
+                    "uploadBasePath",
+                    "cvParseStatus",
+                    "applicationStatus"
+                  ],
+                  "properties": {
+                    "candidateId": {
+                      "type": "string"
+                    },
+                    "applicationId": {
+                      "type": "string"
+                    },
+                    "uploadBasePath": {
+                      "type": "string",
+                      "description": "Firebase Storage base path where the CV must be uploaded, e.g. cvs/{candidateId}"
+                    },
+                    "cvParseStatus": {
+                      "$ref": "#/components/schemas/CvParseStatus"
+                    },
+                    "applicationStatus": {
+                      "$ref": "#/components/schemas/ApplicationStatus"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/getCandidateProfileForConfirmation": {
+      "get": {
+        "tags": ["Candidates"],
+        "operationId": "getCandidateProfileForConfirmation",
+        "summary": "Get CV parsing status and preliminary candidate profile",
+        "description": "Returns the current parsing status and canonical candidate profile fields for the CV confirmation screen. The frontend should poll this endpoint after uploading the CV until `cvParseStatus` becomes `done` or `failed`, then let the candidate review or complete the profile before calling `confirmCandidateProfile`.",
+        "parameters": [
+          {
+            "name": "candidateId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "applicationId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Candidate profile status returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "candidateId",
+                    "applicationId",
+                    "cvParseStatus",
+                    "cvParseError",
+                    "profileStatus",
+                    "profile"
+                  ],
+                  "properties": {
+                    "candidateId": {
+                      "type": "string"
+                    },
+                    "applicationId": {
+                      "type": "string"
+                    },
+                    "cvParseStatus": {
+                      "$ref": "#/components/schemas/CvParseStatus"
+                    },
+                    "cvParseError": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "profileStatus": {
+                      "type": "string",
+                      "enum": ["draft", "completed"]
+                    },
+                    "profile": {
+                      "$ref": "#/components/schemas/CandidateProfileForConfirmation"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing required fields",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Application does not belong to candidate",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Candidate or application not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/confirmCandidateProfile": {
+      "patch": {
+        "tags": ["Candidates"],
+        "operationId": "confirmCandidateProfile",
+        "summary": "Confirm and complete a candidate's profile",
+        "description": "Called after the candidate reviews their AI-parsed data. Writes the confirmed profile fields to Firestore and transitions the candidate's `profileStatus` to `completed`. Optionally links to an existing application.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["candidateId", "profile"],
+                "properties": {
+                  "candidateId": {
+                    "type": "string"
+                  },
+                  "applicationId": {
+                    "type": "string",
+                    "description": "Optional. Links the confirmation to an existing application."
+                  },
+                  "profile": {
+                    "$ref": "#/components/schemas/CandidatePostulationBase"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Profile confirmed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["candidateId", "profileStatus"],
+                  "properties": {
+                    "candidateId": {
+                      "type": "string"
+                    },
+                    "applicationId": {
+                      "type": "string"
+                    },
+                    "profileStatus": {
+                      "type": "string",
+                      "enum": ["completed"]
+                    },
+                    "applicationStatus": {
+                      "type": "string",
+                      "enum": ["active"]
+                    },
+                    "applicationStage": {
+                      "type": "string",
+                      "enum": ["applied"]
+                    },
+                    "cvParseStatus": {
+                      "$ref": "#/components/schemas/CvParseStatus"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing required fields",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Candidate not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/discardCandidateDraft": {
+      "post": {
+        "tags": ["Candidates"],
+        "operationId": "discardCandidateDraft",
+        "summary": "Discard a candidate draft application",
+        "description": "Discards a draft CV-based application before profile confirmation. Requires an authenticated Firebase user.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DiscardCandidateDraftRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Draft discarded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiscardCandidateDraftResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Application does not belong to candidate",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Candidate or application not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Method not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "412": {
+            "description": "Draft cannot be discarded in its current state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/submitApplication": {
+      "post": {
+        "tags": ["Applications"],
+        "operationId": "submitApplication",
+        "summary": "Submit an application for a job",
+        "description": "Creates a new application linking the authenticated candidate to a job. The candidateId is derived from the auth token — it must not be passed in the body. Returns 409 if an application already exists for that candidate+job combination. Returns 422 if the job is not open.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["jobId"],
+                "properties": {
+                  "jobId": {
+                    "type": "string",
+                    "description": "Firestore document ID of the job to apply to"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Application submitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "applicationId",
+                    "candidateId",
+                    "jobId",
+                    "stage",
+                    "status"
+                  ],
+                  "properties": {
+                    "applicationId": {
+                      "type": "string"
+                    },
+                    "candidateId": {
+                      "type": "string"
+                    },
+                    "jobId": {
+                      "type": "string"
+                    },
+                    "stage": {
+                      "$ref": "#/components/schemas/ApplicationStage"
+                    },
+                    "status": {
+                      "$ref": "#/components/schemas/ApplicationStatus"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Candidate or job not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Application already exists for this candidate+job",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Job is not open for applications",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/getApplicationsByJob": {
+      "get": {
+        "tags": ["Applications"],
+        "operationId": "getApplicationsByJob",
+        "summary": "Get all applications for a job",
+        "description": "Returns all applications for a given job, optionally sorted and paginated. Each item includes denormalized candidate fields (name, email). Used to populate the recruiter pipeline board.",
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderBy",
+            "in": "query",
+            "description": "Field used by Firestore for ordering. Ordering by fitScore excludes applications where the score is not available; the pipeline requests createdAt and orders by FIT in memory to include them.",
+            "schema": {
+              "type": "string",
+              "enum": ["createdAt", "fitScore"]
+            }
+          },
+          {
+            "name": "orderDirection",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["asc", "desc"]
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Array of applications with denormalized candidate data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ApplicationWithCandidateDTO"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error (e.g. missing jobId)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Job not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/updateApplicationStage": {
+      "patch": {
+        "tags": ["Applications"],
+        "operationId": "updateApplicationStage",
+        "summary": "Advance or change an application's stage",
+        "description": "Transitions an application to a new stage in the recruiter pipeline state machine. Writing to `rejected` requires `rejectionReason`. The `onStageChanged` Cloud Function trigger handles side effects (emails, employee migration on `hired`).",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["applicationId", "stage"],
+                "properties": {
+                  "applicationId": {
+                    "type": "string"
+                  },
+                  "stage": {
+                    "$ref": "#/components/schemas/ApplicationStage"
+                  },
+                  "rejectionReason": {
+                    "type": "string",
+                    "description": "Required when stage is `rejected`"
+                  },
+                  "notes": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Stage updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "example": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Application not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/updateApplication": {
+      "patch": {
+        "tags": ["Applications"],
+        "operationId": "updateApplication",
+        "summary": "Update application metadata (fortalezas)",
+        "description": "Partial update for recruiter-editable fields on an application. Currently supports updating `fortalezas` (candidate strengths noted by the recruiter).",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["applicationId", "fortalezas"],
+                "properties": {
+                  "applicationId": {
+                    "type": "string"
+                  },
+                  "fortalezas": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "List of candidate strengths as free-text strings"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Application updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["success", "fortalezas"],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "fortalezas": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/getStageHistory": {
+      "get": {
+        "tags": ["Applications"],
+        "operationId": "getStageHistory",
+        "summary": "Get the stage transition history of an application",
+        "description": "Returns a chronological list of all stage transitions for an application, including who made each change and any associated notes or rejection reason.",
+        "parameters": [
+          {
+            "name": "applicationId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Array of stage history entries",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/StageHistoryEntry"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Application not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/getCvSignedUrl": {
+      "get": {
+        "tags": ["Applications"],
+        "operationId": "getCvSignedUrl",
+        "summary": "Get the Firebase Storage path for a candidate's CV",
+        "description": "Returns the Firebase Storage path (`cvStoragePath`) for the CV associated with the given application. The frontend then calls `getDownloadURL(ref(storage, cvStoragePath))` to produce a signed download URL. Returns 404 if the application has no CV.",
+        "parameters": [
+          {
+            "name": "applicationId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Storage path returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["cvStoragePath"],
+                  "properties": {
+                    "cvStoragePath": {
+                      "type": "string",
+                      "description": "Firebase Storage path, e.g. cvs/{candidateId}/cv.pdf"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing applicationId",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Application not found or candidate has no CV",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/saveInterviewForm": {
+      "post": {
+        "tags": ["Interviews"],
+        "operationId": "saveInterviewForm",
+        "summary": "Save an interview form",
+        "description": "Stores an HR or technical interview form for an application. Requires an authenticated Firebase user.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveInterviewFormRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Interview form saved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaveInterviewFormResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Application not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Method not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Application stage transition conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/getInterviewForms": {
+      "get": {
+        "tags": ["Interviews"],
+        "operationId": "getInterviewForms",
+        "summary": "Get interview forms for an application",
+        "description": "Returns all interview forms associated with an application. Requires an authenticated Firebase user.",
+        "parameters": [
+          {
+            "name": "applicationId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Application id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Interview forms",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/InterviewForm"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid applicationId",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Application not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Method not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/saveCandidacyNote": {
+      "post": {
+        "tags": ["Candidacy Notes"],
+        "operationId": "saveCandidacyNote",
+        "summary": "Save a candidacy note",
+        "description": "Creates a note attached to an application. Requires an authenticated Firebase user.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveCandidacyNoteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Note saved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaveCandidacyNoteResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Application or note not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Method not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/getCandidacyNotes": {
+      "get": {
+        "tags": ["Candidacy Notes"],
+        "operationId": "getCandidacyNotes",
+        "summary": "Get candidacy notes for an application",
+        "description": "Returns notes attached to an application. Requires an authenticated Firebase user.",
+        "parameters": [
+          {
+            "name": "applicationId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Application id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Candidacy notes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CandidacyNote"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid applicationId",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Application not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Method not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/updateCandidacyNote": {
+      "patch": {
+        "tags": ["Candidacy Notes"],
+        "operationId": "updateCandidacyNote",
+        "summary": "Update a candidacy note",
+        "description": "Updates the text of an existing note. Requires an authenticated Firebase user.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCandidacyNoteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated note",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CandidacyNote"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Application or note not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Method not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/createOfferDraft": {
+      "post": {
+        "tags": ["Offers"],
+        "operationId": "createOfferDraft",
+        "summary": "Create an offer letter draft",
+        "description": "Creates an Offer in `draft` status for an active, non-terminal application. Candidate/job data is denormalized, the offer letter HTML is generated from the default template and persisted in Storage. Compensation, modality and benefits can be overridden; otherwise job defaults are used when available.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOfferDraftRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Offer draft created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateOfferDraftResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden or application is draft/terminal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Application not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Offer cannot be created for the current data state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/updateOfferDraft": {
+      "put": {
+        "tags": ["Offers"],
+        "operationId": "updateOfferDraft",
+        "summary": "Update an offer letter draft",
+        "description": "Updates editable fields of an Offer in `draft` status, regenerates the stored HTML document and recalculates its hash.",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOfferDraftRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Offer draft updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateOfferDraftResponse"
+                }
+              }
+            }
+          },
+          "400": { "description": "Validation error" },
+          "401": { "description": "Unauthenticated" },
+          "403": { "description": "Forbidden" },
+          "404": { "description": "Offer not found" },
+          "409": { "description": "Offer is not in draft status" },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    },
+    "/previewOffer": {
+      "post": {
+        "tags": ["Offers"],
+        "operationId": "previewOffer",
+        "summary": "Preview an offer letter draft",
+        "description": "Returns the generated HTML for an Offer in `draft` status without publishing it, generating a token or changing state.",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/PreviewOfferRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Generated offer preview",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreviewOfferResponse"
+                }
+              }
+            }
+          },
+          "400": { "description": "Validation error" },
+          "401": { "description": "Unauthenticated" },
+          "403": { "description": "Forbidden" },
+          "404": { "description": "Offer not found" },
+          "409": { "description": "Offer is not in draft status" },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    },
+    "/sendOffer": {
+      "post": {
+        "tags": ["Offers"],
+        "operationId": "sendOffer",
+        "summary": "Publish/send an offer and generate a secure link",
+        "description": "Moves an Offer from `draft` to `sent`, generates a random public token, stores only its SHA-256 hash with an expiration date, updates the application to `stage: offer_sent`, and writes stageHistory atomically. The current implementation prepares the communication/link; real outbound email delivery is handled separately.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Generates a secure public link, resolves the configured `offer` email template, sends it through the recruiter's connected Gmail account, and records the attempt in emailLogs. Only after Gmail confirms delivery does it move the Offer from `draft` to `sent`, store the token hash, update the application to `stage: offer_sent`, and write stageHistory atomically.",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendOfferRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Offer published and secure link generated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SendOfferResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden or application is draft/terminal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Offer or associated application not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Offer is not in draft status or cannot be sent",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/getOfferByApplication": {
+      "get": {
+        "tags": ["Offers"],
+        "operationId": "getOfferByApplication",
+        "summary": "Get the latest offer linked to an application",
+        "description": "Internal endpoint used by recruiter/manager dashboards to retrieve the latest Offer associated with an application. Returns `offer: null` when the application exists but no offer has been created yet.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "applicationId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Latest offer for the application, or null",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetOfferByApplicationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Application not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/getOfferByToken": {
+      "get": {
+        "tags": ["Offers"],
+        "operationId": "getOfferByToken",
+        "summary": "Get a public offer by token",
+        "description": "Public endpoint used by candidates to retrieve a sent offer letter. The received token is hashed server-side and matched against `tokenHash`; expired links are marked as `expired`.",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Public offer payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicOfferResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Offer not found or token is invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Offer is unavailable, already answered or expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/respondOffer": {
+      "post": {
+        "tags": ["Offers"],
+        "operationId": "respondOffer",
+        "summary": "Accept or decline a public offer",
+        "description": "Public endpoint used by candidates to accept or decline a sent offer. It records response evidence including server timestamp, candidate email, signer name when accepting, IP, user agent and token usage. It updates only OfferStatus to `accepted` or `declined`; it does not mark the application as `hired` automatically.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RespondOfferRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Offer response recorded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespondOfferResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Offer not found or token is invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Offer is unavailable, already answered or expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ensureEmployee": {
+      "post": {
+        "tags": ["Auth / Admin"],
+        "operationId": "ensureEmployee",
+        "summary": "Provision an employee record for the authenticated user",
+        "description": "Idempotent upsert: creates an `employees` document for the authenticated user if one does not already exist. Called automatically after Google SSO login. The document is created with `active: false` and `role: null` — an admin must call `setUserRole` to activate the account.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email"],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "displayName": {
+                    "type": "string"
+                  },
+                  "photoURL": {
+                    "type": "string",
+                    "format": "uri",
+                    "nullable": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Employee record ensured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["isNew"],
+                  "properties": {
+                    "isNew": {
+                      "type": "boolean",
+                      "description": "true if the document was just created, false if it already existed"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing email field",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/setUserRole": {
+      "post": {
+        "tags": ["Auth / Admin"],
+        "operationId": "setUserRole",
+        "summary": "Assign a role to a user (admin only)",
+        "description": "Sets Firebase Auth custom claims `{ role }` for the target user. Only callers with `role: admin` in their own token claims can call this endpoint. Returns 403 for non-admin callers.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["uid", "role"],
+                "properties": {
+                  "uid": {
+                    "type": "string",
+                    "description": "Firebase Auth UID of the target user"
+                  },
+                  "role": {
+                    "$ref": "#/components/schemas/EmployeeRole"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Role assigned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["success"],
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid uid/role",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Caller does not have admin role",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/setUserRoleOnboarding": {
+      "post": {
+        "tags": ["Auth / Admin"],
+        "operationId": "setUserRoleOnboarding",
+        "summary": "Self-assign onboarding role",
+        "description": "Allows a newly authenticated user to self-assign one of the onboarding roles (`hr` or `area_leader`) when no role has been assigned yet.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetUserRoleOnboardingRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Role assigned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BooleanSuccessResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid role or role already assigned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Method not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/exchangeGmailCode": {
+      "post": {
+        "tags": ["Email Templates"],
+        "operationId": "exchangeGmailCode",
+        "summary": "Exchange a Google OAuth authorization code for Gmail credentials",
+        "description": "Exchanges a Google OAuth2 authorization code (obtained via the `gmail.send` consent screen) for an access token and refresh token. Stores the credential in `users/{uid}.gmailCredential` so Cloud Functions can send emails on behalf of the authenticated user. Must be called once per user after the OAuth consent flow completes. Requires `access_type=offline&prompt=consent` in the OAuth request to obtain a refresh token.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["code", "redirectUri"],
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "description": "Authorization code returned by Google OAuth2 consent screen"
+                  },
+                  "redirectUri": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "Must match exactly the redirect URI registered in the Google Cloud Console OAuth client"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Gmail credential stored successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["ok"],
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "example": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid code / redirectUri",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Google token exchange failed or internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/exchangeCalendarCode": {
+      "post": {
+        "tags": ["Calendar"],
+        "operationId": "exchangeCalendarCode",
+        "summary": "Exchange Google Calendar OAuth code",
+        "description": "Exchanges a Google OAuth authorization code for Calendar credentials and stores them for the authenticated employee.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExchangeOAuthCodeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Calendar credential stored",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BooleanOkResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Method not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Google Calendar connection failed or internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/updateEmployeeCalendarLink": {
+      "post": {
+        "tags": ["Calendar"],
+        "operationId": "updateEmployeeCalendarLink",
+        "summary": "Update employee calendar link",
+        "description": "Stores or clears the authenticated employee scheduling link. Non-empty links must start with https://.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCalendarLinkRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Calendar link updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BooleanSuccessResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid calendarLink",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Method not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/getEmailLogs": {
+      "get": {
+        "tags": ["Email Templates"],
+        "operationId": "getEmailLogs",
+        "summary": "Get email communication history for a candidate",
+        "description": "Returns all `EmailLog` records for the given candidate, ordered by `attemptedAt` descending. Used to populate the Comunicaciones section in the candidate profile and the global email history view. Logs with `status=failed` include an `error` field explaining the failure.",
+        "parameters": [
+          {
+            "name": "candidateId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Firestore document ID of the candidate"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Email log entries for the candidate",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["logs"],
+                  "properties": {
+                    "logs": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/EmailLog"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing candidateId",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/retryEmailSend": {
+      "post": {
+        "tags": ["Email Templates"],
+        "operationId": "retryEmailSend",
+        "summary": "Retry a failed email send",
+        "description": "Re-attempts sending an email for a log entry with `status=failed` or `status=pending`. Uses the already-resolved `subject` and `body` stored in the log (no re-resolution of template variables). The email is sent using the Gmail credential of the authenticated user making the retry request. Updates `status` to `sent` or `failed` accordingly.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["logId"],
+                "properties": {
+                  "logId": {
+                    "type": "string",
+                    "description": "Firestore document ID of the EmailLog to retry"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Email sent successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["ok"],
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "example": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing logId",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "EmailLog not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Gmail send failed or internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/seedJobs": {
+      "post": {
+        "tags": ["Development / Seeds"],
+        "operationId": "seedJobs",
+        "summary": "Run seedJobs",
+        "description": "Development seed endpoint. Enabled only when running against Firebase emulators.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Seed completed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Seed endpoint is only enabled in emulators",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Method not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Seed failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/seedEmailTemplates": {
+      "post": {
+        "tags": ["Development / Seeds"],
+        "operationId": "seedEmailTemplates",
+        "summary": "Run seedEmailTemplates",
+        "description": "Development seed endpoint. Enabled only when running against Firebase emulators.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Seed completed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Seed endpoint is only enabled in emulators",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Method not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Seed failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/seedEmailLogs": {
+      "post": {
+        "tags": ["Development / Seeds"],
+        "operationId": "seedEmailLogs",
+        "summary": "Run seedEmailLogs",
+        "description": "Development seed endpoint. Enabled only when running against Firebase emulators.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Seed completed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Seed endpoint is only enabled in emulators",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Method not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Seed failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/seedGmailCredential": {
+      "post": {
+        "tags": ["Development / Seeds"],
+        "operationId": "seedGmailCredential",
+        "summary": "Seed a Gmail credential for development",
+        "description": "Stores Gmail OAuth tokens for a user. Used by local seed scripts.",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SeedGmailCredentialRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Credential stored",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["ok", "uid"],
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "uid": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing uid/accessToken/refreshToken",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Method not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "x-callable-functions": {
+    "description": "The following functions use the Firebase onCall protocol (not plain HTTP). They are invoked via the Firebase client SDK (`httpsCallable`) and are documented here with their logical payload/response shapes.",
+    "functions": [
+      {
+        "name": "getApplicationsByCandidate",
+        "description": "Returns all applications for a given candidate. Optionally filtered by jobId.",
+        "auth": "required",
+        "request": {
+          "candidateId": "string (required)",
+          "jobId": "string (optional)"
+        },
+        "response": "ApplicationWithCandidateDTO[]"
+      },
+      {
+        "name": "getApplicationDetail",
+        "description": "Returns the full detail of a single application, including denormalized candidate and job data.",
+        "auth": "required",
+        "request": {
+          "applicationId": "string (required)"
+        },
+        "response": "ApplicationDetailDTO"
+      },
+      {
+        "name": "getInternalJobDetail",
+        "description": "Returns the full Job object for internal recruiter use.",
+        "auth": "required",
+        "request": {
+          "jobId": "string (required)"
+        },
+        "response": "Job"
+      },
+      {
+        "name": "seedCandidates",
+        "description": "Development seed callable for candidate data.",
+        "auth": "not required by handler",
+        "request": {},
+        "response": "implementation-defined seed result"
+      },
+      {
+        "name": "seedEmployees",
+        "description": "Emulator-only development seed callable for employees.",
+        "auth": "not required by handler",
+        "request": {
+          "employees": "SeedEmployeeInput[] (required)"
+        },
+        "response": "{ processed: number }"
+      }
+    ]
+  }
+}

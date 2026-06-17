@@ -1,0 +1,32 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isBackoffice() {
+      return isSignedIn()
+        && (
+          request.auth.token.role == "admin"
+          || request.auth.token.role == "recruiter"
+          || request.auth.token.role == "hr"
+          || request.auth.token.role == "area_leader"
+        );
+    }
+
+    match /cvs/{candidateId}/{fileName} {
+      allow write: if isSignedIn()
+        && request.resource.size < 10 * 1024 * 1024
+        && request.resource.contentType == "application/pdf";
+
+      allow read: if isBackoffice();
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -10,17 +10,21 @@
     "compile-fn": "turbo run build --filter=@ats/functions",
     "dev-web": "turbo run dev --filter=@ats/web ",
     "test": "turbo run test",
-    "test:watch": "turbo run test -- --watch"
+    "test:watch": "turbo run test -- --watch",
+    "seed": "node scripts/seed-emulator.mjs",
+    "seed:staging": "node scripts/seed-staging.mjs",
+    "seed-gmail": "node scripts/seed-emulator.mjs && node --env-file=apps/web/.env.local scripts/seed-gmail-credential.mjs"
   },
   "config": {
     "ghooks": {
-      "pre-commit": "CI=true pnpm lint && CI=true pnpm format && CI=true pnpm test",
-      "commit-msg": "commitlint -e --verbose || (echo '\n❌ ERROR: El mensaje de commit no sigue el estándar.\n💡 Ejemplo válido: feat(auth): agregar validación de usuario\n📖 Más info en: https://www.conventionalcommits.org/es/\n' && exit 1)"
+      "pre-commit": "cross-env CI=true pnpm lint && cross-env CI=true pnpm format && cross-env CI=true pnpm test",
+      "commit-msg": "commitlint -e --verbose || (node -e \"console.error('\\nERROR: El mensaje de commit no sigue el estandar.\\nEjemplo valido: feat(auth): agregar validacion de usuario\\nMas info en: https://www.conventionalcommits.org/es/\\n')\" && exit 1)"
     }
   },
   "devDependencies": {
     "@commitlint/cli": "^20.5.3",
     "@commitlint/config-conventional": "^20.5.3",
+    "cross-env": "^10.1.0",
     "ghooks": "^2.0.4",
     "prettier": "^3.7.4",
     "turbo": "^2.9.7",

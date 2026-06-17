@@ -1,10 +1,13 @@
-"use client";
+'use client';
 
-import { ThemeProvider } from "@mui/material/styles";
-import CssBaseline from "@mui/material/CssBaseline";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useState } from "react";
-import theme from "./lib/theme";
+import { ThemeProvider } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useState } from 'react';
+import theme from './lib/theme';
+import ThemeRegistry from './theme-registry';
+import { AuthProvider } from './shared/lib/authContext';
+import OAuthCodeHandler from './features/auth/components/OAuthCodeHandler';
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -19,11 +22,16 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        {children}
-      </ThemeProvider>
-    </QueryClientProvider>
+    <ThemeRegistry>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <AuthProvider>
+            <OAuthCodeHandler />
+            {children}
+          </AuthProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </ThemeRegistry>
   );
 }

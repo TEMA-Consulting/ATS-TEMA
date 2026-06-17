@@ -70,12 +70,49 @@ export default function PostulationPage({ params }) {
 }
 ```
 
+### Metadata por página
+
+Cada `page.tsx` debe exportar su propia metadata para que el título del navegador refleje el contenido. El `layout.tsx` raíz define el fallback general.
+
+**Páginas estáticas:**
+
+```tsx
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Posiciones abiertas | Tema Consulting',
+};
+```
+
+**Páginas dinámicas** (con parámetros en la URL):
+
+```tsx
+import type { Metadata } from 'next';
+import { JOBS_DATA } from '@/features/jobs/services/jobs';
+
+type Props = { params: Promise<{ jobId: string }> };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { jobId } = await params;
+  const job = JOBS_DATA.find((j) => j.id === jobId);
+  return {
+    title: job
+      ? `${job.title} | Tema Consulting`
+      : 'Posición | Tema Consulting',
+  };
+}
+```
+
+**Regla:** toda página nueva debe definir `metadata` o `generateMetadata`. Nunca dejar el título genérico del layout para páginas con contenido propio.
+
+---
+
 ### Navegación entre rutas
 
 Usar siempre el `Link` de Next.js, nunca una etiqueta `<a>`:
 
 ```tsx
-import Link from "next/link";
+import Link from 'next/link';
 
 <Link href="/postulacion/abc-123">Ver postulación</Link>;
 ```
@@ -89,6 +126,45 @@ pnpm dev --filter @ats/web
 ```
 
 Disponible en `http://localhost:3000`.
+
+---
+
+## Sidebar del Dashboard
+
+El sidebar vive en `app/components/sidebar/Sidebar.tsx` y aplica a todas las rutas bajo `/dashboard/` a través del layout `app/dashboard/layout.tsx`.
+
+### Comportamiento
+
+- **Expandido (240px):** muestra ícono + etiqueta de texto.
+- **Colapsado (64px):** muestra solo íconos; un tooltip aparece al hacer hover con el nombre de la sección.
+- El botón de colapso está en la parte superior del sidebar.
+- La preferencia del usuario se persiste en `localStorage` con la clave `ats-sidebar-collapsed`.
+
+### Agregar una sección nueva
+
+1. Crear la ruta en `app/dashboard/<nombre>/page.tsx`.
+2. Agregar un objeto al array `NAV_ITEMS` en `Sidebar.tsx`:
+
+```tsx
+// app/components/sidebar/Sidebar.tsx
+
+import { IconName } from 'lucide-react';
+
+const NAV_ITEMS = [
+  // ... items existentes
+  {
+    label: 'Mi Sección',
+    href: '/dashboard/mi-seccion',
+    icon: IconName, // siempre de lucide-react
+  },
+];
+```
+
+3. El item se marca como activo automáticamente cuando `pathname` comienza con su `href`.
+
+### Rutas que NO muestran sidebar
+
+Las rutas públicas (`/jobs`, `/postulation`) no están dentro de `app/dashboard/` por lo que nunca renderizarán el sidebar. No hace falta ninguna configuración extra para ocultarlo.
 
 ---
 

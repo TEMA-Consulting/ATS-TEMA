@@ -1,15 +1,20 @@
 {
-    "name": "@ats/shared-types",
-    "version": "0.0.0",
-    "private": true,
-    "exports": {
-        ".": "./src/index.ts"
-    },
-    "scripts": {
-        "lint": "tsc --noEmit"
-    },
-    "devDependencies": {
-        "typescript": "^5",
-        "@repo/typescript-config": "workspace:*"
+  "name": "@ats/shared-types",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "browser": "./src/index.ts",
+      "default": "./dist/index.js"
     }
+  },
+  "scripts": {
+    "build": "tsc",
+    "lint": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5",
+    "@repo/typescript-config": "workspace:*"
+  }
 }
