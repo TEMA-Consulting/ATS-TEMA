@@ -97,8 +97,12 @@ jobs:
           service_account: github-actions-deploy@ats-tema-ort.iam.gserviceaccount.com
           token_format: access_token
 
-      - name: Instalar Firebase CLI
-        run: npm install -g firebase-tools@14 which esbuild@0.19.12
+      - name: Instalar Firebase CLI y esbuild
+        run: |
+          npm install -g firebase-tools@14 esbuild@0.19.12
+          ESBUILD_PATH="$(npm bin -g)/esbuild"
+          printf '#!/bin/sh\nif [ "$1" = "esbuild" ]; then echo "%s"; exit 0; fi\ncommand -v "$1"\n' "$ESBUILD_PATH" > /usr/local/bin/node-which
+          chmod +x /usr/local/bin/node-which
 
       - name: Habilitar Web Frameworks
         run: firebase experiments:enable webframeworks
