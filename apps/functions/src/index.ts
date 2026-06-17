@@ -37,7 +37,6 @@ export {
   onCandidateMatchingInputsUpdated,
   onJobMatchingInputsUpdated,
 } from './triggers/onMatchingInputsUpdated';
-export { onUserCreated } from './triggers/onUserCreated';
 export { submitApplication } from './callables/submitApplication';
 export { getCvSignedUrl } from './callables/getCvSignedUrl';
 export { setUserRole } from './callables/setUserRole';
