@@ -132,9 +132,28 @@ jobs:
             });
             fs.writeFileSync('apps/functions/package.json', JSON.stringify(fn, null, 2));
           "
+          rm -rf apps/functions/shared-types
           mkdir -p apps/functions/shared-types
           cp -r packages/shared-types/dist apps/functions/shared-types/dist
-          cp packages/shared-types/package.json apps/functions/shared-types/package.json
+          node -e "
+            const fs = require('fs');
+            const pkg = {
+              name: '@ats/shared-types',
+              version: '0.0.0',
+              main: './dist/index.js',
+              types: './dist/index.d.ts',
+              exports: {
+                '.': {
+                  types: './dist/index.d.ts',
+                  default: './dist/index.js'
+                }
+              }
+            };
+            fs.writeFileSync(
+              'apps/functions/shared-types/package.json',
+              JSON.stringify(pkg, null, 2)
+            );
+          "
 
       - name: Deploy
         run: firebase deploy --only hosting,functions,firestore,storage --project ats-tema-ort --force
