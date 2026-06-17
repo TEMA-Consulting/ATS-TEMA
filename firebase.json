@@ -9,7 +9,7 @@
   "functions": {
     "source": "apps/functions",
     "runtime": "nodejs22",
-    "ignore": ["node_modules", "lib", ".git"]
+    "ignore": ["node_modules", ".git"]
   },
   "firestore": {
     "rules": "firestore.rules",
