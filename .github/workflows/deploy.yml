@@ -105,20 +105,38 @@ jobs:
         env:
           FIREBASE_TOKEN: ${{ steps.auth.outputs.access_token }}
 
-      - name: Quitar workspace:* de apps/web para que Firebase pueda instalar esbuild
+      - name: Preparar packages para Firebase deploy
         run: |
           node -e "
             const fs = require('fs');
-            const pkg = JSON.parse(fs.readFileSync('apps/web/package.json', 'utf8'));
-            ['dependencies', 'devDependencies'].forEach(field => {
-              Object.keys(pkg[field] || {}).forEach(k => {
-                if (String(pkg[field][k]).startsWith('workspace:')) delete pkg[field][k];
+
+            // Patch apps/web: eliminar workspace:* (devDeps internas no necesarias en Cloud Build)
+            const web = JSON.parse(fs.readFileSync('apps/web/package.json', 'utf8'));
+            ['dependencies', 'devDependencies'].forEach(f => {
+              Object.keys(web[f] || {}).forEach(k => {
+                if (String(web[f][k]).startsWith('workspace:')) delete web[f][k];
               });
             });
-            fs.writeFileSync('apps/web/package.json', JSON.stringify(pkg, null, 2));
+            fs.writeFileSync('apps/web/package.json', JSON.stringify(web, null, 2));
+
+            // Patch apps/functions: reemplazar @ats/shared-types con referencia file: local
+            const fn = JSON.parse(fs.readFileSync('apps/functions/package.json', 'utf8'));
+            ['dependencies', 'devDependencies'].forEach(f => {
+              Object.keys(fn[f] || {}).forEach(k => {
+                if (k === '@ats/shared-types') {
+                  fn[f][k] = 'file:./shared-types';
+                } else if (String(fn[f][k]).startsWith('workspace:')) {
+                  delete fn[f][k];
+                }
+              });
+            });
+            fs.writeFileSync('apps/functions/package.json', JSON.stringify(fn, null, 2));
           "
+          mkdir -p apps/functions/shared-types
+          cp -r packages/shared-types/dist apps/functions/shared-types/dist
+          cp packages/shared-types/package.json apps/functions/shared-types/package.json
 
       - name: Deploy
-        run: firebase deploy --only hosting,functions,firestore,storage --project ats-tema-ort
+        run: firebase deploy --only hosting,functions,firestore,storage --project ats-tema-ort --force
         env:
           FIREBASE_TOKEN: ${{ steps.auth.outputs.access_token }}
