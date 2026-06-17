@@ -107,6 +107,11 @@ jobs:
       - name: Instalar Firebase CLI
         run: npm install -g firebase-tools@14
 
+      - name: Habilitar Web Frameworks
+        run: firebase experiments:enable webframeworks
+        env:
+          FIREBASE_TOKEN: ${{ steps.auth.outputs.access_token }}
+
       - name: Deploy
         run: firebase deploy --only hosting,functions,firestore,storage --project ats-tema-ort
         env:
