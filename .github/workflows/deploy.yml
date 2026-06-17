@@ -76,8 +76,8 @@ jobs:
           key: ${{ runner.os }}-turbo-deploy-${{ github.sha }}
           restore-keys: ${{ runner.os }}-turbo-deploy-
 
-      - name: Build shared packages
-        run: pnpm turbo build --filter=@ats/shared-types
+      - name: Build shared packages y functions
+        run: pnpm turbo build --filter=@ats/shared-types --filter=@ats/functions
 
       - name: Crear .env para Cloud Functions
         run: |
