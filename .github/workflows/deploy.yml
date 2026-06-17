@@ -90,6 +90,7 @@ jobs:
           } > apps/functions/.env
 
       - name: Autenticar con Google Cloud
+        id: auth
         uses: google-github-actions/auth@v2
         with:
           workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
@@ -103,3 +104,5 @@ jobs:
 
       - name: Deploy
         run: firebase deploy --only hosting,functions,firestore,storage --project ats-tema-ort
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ steps.auth.outputs.credentials_file_path }}
