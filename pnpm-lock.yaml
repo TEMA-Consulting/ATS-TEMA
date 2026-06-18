@@ -48,40 +48,6 @@ importers:
         specifier: 5.9.2
         version: 5.9.2
 
-  apps/docs:
-    dependencies:
-      next:
-        specifier: '>=16.2.3'
-        version: 16.2.4(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
-      react:
-        specifier: ^19.2.0
-        version: 19.2.5
-      react-dom:
-        specifier: ^19.2.0
-        version: 19.2.5(react@19.2.5)
-    devDependencies:
-      '@repo/eslint-config':
-        specifier: workspace:*
-        version: link:../../packages/eslint-config
-      '@repo/typescript-config':
-        specifier: workspace:*
-        version: link:../../packages/typescript-config
-      '@types/node':
-        specifier: ^22.15.3
-        version: 22.19.17
-      '@types/react':
-        specifier: 19.2.2
-        version: 19.2.2
-      '@types/react-dom':
-        specifier: 19.2.2
-        version: 19.2.2(@types/react@19.2.2)
-      eslint:
-        specifier: ^9.21.0
-        version: 9.39.4(jiti@2.6.1)
-      typescript:
-        specifier: 5.9.2
-        version: 5.9.2
-
   apps/functions:
     dependencies:
       '@ats/shared-types':

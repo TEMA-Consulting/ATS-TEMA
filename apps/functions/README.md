@@ -1,44 +1,90 @@
-## Google Calendar OAuth — setup local
+# Cloud Functions
 
-Solo necesario si vas a trabajar en el flujo de scheduling automático (FB-65/67).
+Backend del ATS implementado con Firebase Cloud Functions v2 y Node.js 22.
 
-### 1. Variables de entorno
+## Responsabilidades
 
-Agregar a `apps/functions/.env.local`:
+- endpoints HTTP y Firebase Callables;
+- validación y autorización;
+- persistencia en Firestore;
+- parsing de CV y matching;
+- Gmail y plantillas de email;
+- Calendar OAuth, webhooks y renovación de watches;
+- ofertas;
+- triggers de Firestore, Auth y Storage.
+
+## Desarrollo local
+
+Desde la raíz:
+
+```bash
+cp apps/functions/.env.example apps/functions/.env.local
+pnpm install --frozen-lockfile
+firebase emulators:start --only auth,functions,firestore,storage
+```
+
+En otra terminal:
+
+```bash
+pnpm --filter @ats/functions build:watch
+```
+
+Para trabajar sin proveedores externos:
 
 ```env
-OAUTH_ENCRYPTION_KEY=<ver paso 2>
-CALENDAR_WEBHOOK_SECRET=local-dev-secret
-CALENDAR_WEBHOOK_URL=http://127.0.0.1:5001/ats-tema-ort/us-central1/calendarWebhook
+GMAIL_MOCK=true
+CV_PARSING_USE_MOCK=true
 ```
 
-> `GOOGLE_OAUTH_CLIENT_ID` y `GOOGLE_OAUTH_CLIENT_SECRET` ya están en el `.env.local` compartido del equipo.
+## Estructura
 
-### 2. Generar `OAUTH_ENCRYPTION_KEY`
+```text
+src/
+  callables/       endpoints HTTP y Callables
+  services/        lógica de negocio
+  repositories/    acceso a Firestore
+  validators/      validación de entrada
+  triggers/        eventos de plataforma
+  scheduled/       tareas programadas
+  core/            inicialización, auth, CORS y secretos
+```
+
+## Autenticación
+
+Los endpoints HTTP protegidos esperan un Firebase ID token:
+
+```http
+Authorization: Bearer <token>
+```
+
+No confiar en roles enviados en el body. Usar
+`core/httpAuth.ts` y validar permisos en el backend.
+
+## Variables y secretos
+
+Consultar `.env.example` y `../../docs/OPERATIONS.md`.
+
+En producción:
+
+- `OAUTH_ENCRYPTION_KEY` y `CALENDAR_WEBHOOK_SECRET` se administran con
+  Firebase Secret Manager;
+- credenciales OAuth y variables del entorno se administran desde CI/Google
+  Cloud;
+- no se debe incluir ningún valor real en Git.
+
+## Calidad
 
 ```bash
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+pnpm lint
+pnpm test
+pnpm build
 ```
 
-Coordiná el valor con el equipo — todos deben usar **el mismo key** para poder leer tokens guardados por otros en el emulador.
+## API
 
-### 3. Simular un webhook de Google localmente
+- exports: `src/index.ts`;
+- contratos: `packages/shared-types/src/contracts`;
+- OpenAPI: `../../docs/swagger.json`;
+- guías especializadas: `../docs/functions/README.md`.
 
-Google no puede llamar a `localhost`, así que el webhook se simula con curl.
-
-```bash
-# 1. Conectar Calendar desde la UI (Settings → Conectar Google Calendar)
-# 2. Abrir Firestore Emulator UI → users/{uid} → copiar calendarWatch.channelId
-# 3. Disparar la notificación:
-
-curl -X POST http://127.0.0.1:5001/ats-tema-ort/us-central1/calendarWebhook \
-  -H "X-Goog-Channel-ID: <channelId>" \
-  -H "X-Goog-Resource-State: exists" \
-  -H "X-Goog-Channel-Token: local-dev-secret"
-```
-
-Verificar en los logs del emulador que aparezca `[calendarWebhookService] Transicionando aplicación`.
-
-### `CALENDAR_WEBHOOK_SECRET` en local
-
-Puede ser cualquier string — `local-dev-secret` está bien. Solo tiene que coincidir entre `.env.local` y el header `X-Goog-Channel-Token` del curl.
+Swagger debe actualizarse en el mismo cambio que altere una función pública.
