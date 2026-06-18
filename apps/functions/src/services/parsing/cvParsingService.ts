@@ -204,6 +204,25 @@ export class CvParsingService {
       .filter(Boolean)
       .join(' ');
 
+    logger.info('[CvParsingService] Fuentes seleccionadas para el perfil.', {
+      nameSource:
+        parsed.firstName || parsed.lastName || parsed.fullName
+          ? 'ai'
+          : 'local_fallback',
+      experienceSource: parsed.parsedExperience?.length
+        ? 'ai'
+        : fallbackProfile.parsedExperience?.length
+          ? 'local_fallback'
+          : 'none',
+      educationSource: parsed.parsedEducation?.length
+        ? 'ai'
+        : fallbackProfile.parsedEducation?.length
+          ? 'local_fallback'
+          : 'none',
+      aiExperienceCount: parsed.parsedExperience?.length ?? 0,
+      fallbackExperienceCount: fallbackProfile.parsedExperience?.length ?? 0,
+    });
+
     return normalizeCandidateProfile({
       ...parsed,
       ...normalizedName,
@@ -545,7 +564,12 @@ export class CvParsingService {
   private extractFallbackExperience(
     lines: string[],
   ): NonNullable<ParsedCandidateProfileData['parsedExperience']> {
-    const startIndex = this.findLineIndex(lines, 'experiencia');
+    const startIndex = this.findLineIndex(
+      lines,
+      'experiencia',
+      'experiencia profesional',
+      'experiencia laboral',
+    );
     if (startIndex === -1) {
       return [];
     }
@@ -555,6 +579,8 @@ export class CvParsingService {
       'skills técnicas',
       'educacion',
       'educación',
+      'proyectos destacados',
+      'logros',
     ]);
     const sectionLines = lines.slice(
       startIndex + 1,
@@ -564,22 +590,38 @@ export class CvParsingService {
 
     for (let index = 0; index < sectionLines.length; index += 1) {
       const line = sectionLines[index];
-      const dateLine = sectionLines[index + 1];
+      const nextLine = sectionLines[index + 1];
+      const nextDateRange = nextLine ? this.extractDateRange(nextLine) : null;
 
-      if (
-        !line?.includes('|') ||
-        !dateLine ||
-        !this.looksLikeDateRange(dateLine)
-      ) {
+      if (line?.includes('|') && nextDateRange) {
+        const [role, company] = line.split('|').map((part) => part.trim());
+        const [startDate, endDate] = nextDateRange;
+
+        experience.push({
+          role,
+          company,
+          startDate,
+          endDate,
+        });
+        index += 1;
         continue;
       }
 
-      const [role, company] = line.split('|').map((part) => part.trim());
-      const [startDate, endDate] = this.splitDateRange(dateLine);
+      const dateRange = line ? this.extractDateRange(line) : null;
+      const role = sectionLines[index - 1];
+      if (!dateRange || !role || this.looksLikeDateRange(role)) {
+        continue;
+      }
+
+      const metadata = line.split(/\s+—\s+/)[0]?.trim();
+      const company = metadata?.includes('|')
+        ? metadata.split('|')[0]?.trim()
+        : undefined;
+      const [startDate, endDate] = dateRange;
 
       experience.push({
         role,
-        company,
+        ...(company ? { company } : {}),
         startDate,
         endDate,
       });
@@ -656,11 +698,26 @@ export class CvParsingService {
     );
   }
 
+  private extractDateRange(
+    line: string,
+  ): [string | undefined, string | undefined] | null {
+    const dateText = line
+      .split(/\s+—\s+/)
+      .at(-1)
+      ?.trim();
+    if (!dateText || !this.looksLikeDateRange(dateText)) {
+      return null;
+    }
+
+    const [startDate, endDate] = this.splitDateRange(dateText);
+    return startDate ? [startDate, endDate] : null;
+  }
+
   private splitDateRange(
     line: string,
   ): [string | undefined, string | undefined] {
     const [startDate, endDate] = line
-      .split(/\s+[–-]\s+/)
+      .split(/\s+[—–-]\s+/)
       .map((part) => part.trim());
 
     return [startDate || undefined, endDate || undefined];

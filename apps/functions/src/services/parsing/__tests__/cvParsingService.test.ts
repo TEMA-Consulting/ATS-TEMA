@@ -253,6 +253,54 @@ Tecnicatura Superior en Análisis de Sistemas ORT Argentina
     });
   });
 
+  it('extrae experiencia profesional cuando las fechas comparten linea con ubicacion o empresa', async () => {
+    process.env.CV_PARSING_FORCE_REAL_AI = 'true';
+    process.env.GCP_PROJECT = 'ats-tema-ort';
+    mocks.getText.mockResolvedValue({
+      text: `SOFIA
+LORIA
+TECH RECRUITER
+EXPERIENCIA PROFESIONAL
+IT Talent Partner & Technical Screener
+Buenos Aires — Mar 2024 - Presente
+Analista Tecnica de Procesos de Seleccion
+Buenos Aires — Mar 2022 - Feb 2024
+Backend Developer
+Tecnologia de Seguros & Core Systems | Buenos Aires — Feb 2020 - Ene 2022
+PROYECTOS DESTACADOS
+RATS`,
+    });
+    mocks.generateContent.mockResolvedValue({
+      text: JSON.stringify({
+        fullName: 'Sofia Loria',
+        technicalSkills: ['Recruiting'],
+      }),
+    });
+
+    const service = new CvParsingService();
+
+    const result = await service.parseFromBuffer(Buffer.from('pdf'));
+
+    expect(result.parsedExperience).toEqual([
+      {
+        role: 'IT Talent Partner & Technical Screener',
+        startDate: 'Mar 2024',
+        endDate: 'Presente',
+      },
+      {
+        role: 'Analista Tecnica de Procesos de Seleccion',
+        startDate: 'Mar 2022',
+        endDate: 'Feb 2024',
+      },
+      {
+        role: 'Backend Developer',
+        company: 'Tecnologia de Seguros & Core Systems',
+        startDate: 'Feb 2020',
+        endDate: 'Ene 2022',
+      },
+    ]);
+  });
+
   it('descarta campos y elementos inválidos conservando los datos utilizables', async () => {
     process.env.CV_PARSING_FORCE_REAL_AI = 'true';
     process.env.GCP_PROJECT = 'ats-tema-ort';
