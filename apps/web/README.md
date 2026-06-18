@@ -62,4 +62,4 @@ pnpm build
 ```
 
 El build puede advertir sobre la migración futura de `middleware.ts` a
-`proxy.ts`. Está registrada en `docs/KNOWN_ISSUES.md`.
+`proxy.ts`. Está registrada en `docs/LIMITATIONS.md`.

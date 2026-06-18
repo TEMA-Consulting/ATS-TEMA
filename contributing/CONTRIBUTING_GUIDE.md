@@ -167,7 +167,6 @@ probar éxito, error, timeout/revocación y modo mock cuando aplique.
 
 ## Git
 
-- Confirmar la rama canónica antes de crear una rama.
 - Usar ramas cortas y PRs revisables.
 - No mezclar refactors masivos con cambios funcionales.
 - Usar Conventional Commits.
@@ -179,7 +178,7 @@ Ejemplos:
 ```text
 feat(candidate): agregar validación de perfil
 fix(calendar): renovar watches vencidos
-docs(handoff): actualizar procedimiento de deploy
+docs(operations): actualizar procedimiento de deploy
 test(offer): cubrir rechazo de oferta
 ```
 
@@ -212,7 +211,7 @@ Actualizar el documento canónico correspondiente:
 - instalación: `../README.md`;
 - arquitectura: `../docs/ARCHITECTURE.md`;
 - operación: `../docs/OPERATIONS.md`;
-- handoff: `../docs/HANDOFF.md`;
+- limitaciones: `../docs/LIMITATIONS.md`;
 - API: `../docs/swagger.json`;
 - frontend: `front/`;
 - módulos técnicos: `../docs/technical/`.

@@ -50,9 +50,9 @@ Los componentes no deben contener lógica de persistencia. El flujo preferido es
 Page/Component → Hook → Service/API → Repository o Cloud Function
 ```
 
-Existen algunas importaciones Firebase heredadas fuera de los repositorios,
-principalmente para autenticación, Storage y Callables. No deben usarse como
-precedente para agregar más acoplamiento.
+Las importaciones directas de Firebase fuera de los repositorios se limitan
+principalmente a autenticación, Storage y Callables. Las nuevas operaciones de
+datos deben mantener el acceso encapsulado.
 
 ## Backend
 
@@ -157,11 +157,5 @@ La oferta se administra desde el perfil, se envía mediante email y se expone al
 candidato con un token público. En Firestore se persiste el hash del token, no
 el token plano.
 
-## Límites conocidos
-
-- No hay pruebas E2E ni una suite integrada completa contra emuladores.
-- La cobertura no se exige en CI.
-- `middleware.ts` debe migrarse a la convención `proxy.ts` de Next.js 16.
-- `docs/swagger.json` puede retrasarse respecto de nuevas funciones; actualizarlo
-  en el mismo PR que modifique la API.
-- No existe todavía una migración on-premises implementada.
+Las restricciones técnicas conocidas se registran en
+`docs/LIMITATIONS.md`.

@@ -3,9 +3,6 @@
 Applicant Tracking System para gestionar posiciones, candidatos, entrevistas,
 comunicaciones y ofertas laborales.
 
-Este repositorio se entrega como base para que el equipo técnico del cliente
-continúe el desarrollo, las pruebas, el despliegue y la operación.
-
 ## Estado del proyecto
 
 El sistema implementa:
@@ -21,7 +18,7 @@ El sistema implementa:
 - integración con Google Calendar;
 - creación, envío y respuesta de ofertas.
 
-Las limitaciones conocidas están en [docs/KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md).
+Las limitaciones conocidas están en [docs/LIMITATIONS.md](docs/LIMITATIONS.md).
 
 ## Stack
 
@@ -46,7 +43,7 @@ packages/
   shared-types/        modelos y contratos compartidos
   eslint-config/       configuración ESLint
   typescript-config/   configuración TypeScript
-docs/                  handoff, arquitectura, operación y pruebas
+docs/                  arquitectura, operación, pruebas y referencias técnicas
 scripts/               seeds y administración local
 ```
 
@@ -54,10 +51,10 @@ scripts/               seeds y administración local
 
 | Documento                                          | Uso                                  |
 | -------------------------------------------------- | ------------------------------------ |
-| [Handoff](docs/HANDOFF.md)                         | Transferencia, accesos y aceptación  |
 | [Arquitectura](docs/ARCHITECTURE.md)               | Componentes, datos e integraciones   |
 | [Operación](docs/OPERATIONS.md)                    | Deploy, monitoreo, backup y rollback |
 | [Pruebas](docs/TESTING.md)                         | Estrategia y comandos                |
+| [Limitaciones](docs/LIMITATIONS.md)                | Restricciones técnicas conocidas     |
 | [Contribución](contributing/CONTRIBUTING_GUIDE.md) | Convenciones para cambios            |
 | [Frontend](apps/web/README.md)                     | Organización del frontend            |
 | [Diseño](contributing/front/DESIGN_GUIDE.md)       | Sistema visual y accesibilidad       |
@@ -91,10 +88,6 @@ git clone https://github.com/grupo-quatro/ats-tema.git
 cd ats-tema
 pnpm install --frozen-lockfile
 ```
-
-Antes de comenzar, confirmar con el responsable del repositorio cuál es la rama
-canónica y qué release debe utilizarse. No asumir que `main`, `develop` y
-`staging` están sincronizadas.
 
 ## Configuración local
 
@@ -165,7 +158,7 @@ pnpm test
 pnpm build
 ```
 
-No entregar ni desplegar un commit que no pase los cuatro comandos.
+No desplegar un commit que no pase los cuatro comandos.
 
 ## Scripts principales
 
@@ -219,8 +212,3 @@ No ejecutar `firebase deploy` contra producción hasta:
 - Tratar los CVs y decisiones de contratación como datos personales sensibles.
 - Validar autorización en backend y reglas, no solo en la UI.
 - Revisar `firestore.rules` y `storage.rules` con cada cambio de acceso.
-
-## Handoff
-
-La transferencia no finaliza con acceso al repositorio. Deben entregarse también
-los accesos y procedimientos detallados en [docs/HANDOFF.md](docs/HANDOFF.md).

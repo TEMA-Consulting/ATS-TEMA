@@ -15,12 +15,10 @@ El despliegue versionado se realiza desde GitHub Actions:
 
 Antes de usar producción se debe:
 
-1. definir la rama canónica;
-2. corregir el permiso `id-token: write` del job que autentica mediante WIF;
-3. ejecutar lint, tipos, tests y build;
-4. proteger el environment `production` con aprobación;
-5. comprobar todos los secrets;
-6. desplegar desde una release identificable.
+1. ejecutar lint, tipos, tests y build;
+2. proteger el environment `production` con aprobación;
+3. comprobar todos los secrets;
+4. desplegar desde una versión identificable.
 
 No ejecutar un deploy de producción desde un árbol local sin commit.
 
@@ -48,8 +46,7 @@ firebase functions:secrets:set CALENDAR_WEBHOOK_SECRET
 No regenerar `OAUTH_ENCRYPTION_KEY` mientras existan credenciales OAuth
 cifradas: hacerlo impediría descifrarlas.
 
-Las credenciales OAuth también deben tratarse como secretos en CI, aunque el
-workflow actual las materialice temporalmente en `apps/functions/.env`.
+Las credenciales OAuth también deben tratarse como secretos en CI.
 
 ## Configuración externa
 

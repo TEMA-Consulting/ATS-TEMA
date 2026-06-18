@@ -55,8 +55,9 @@ disponibles.
 La identidad de ejecución debe tener permisos mínimos para Vertex AI. No se
 requieren claves JSON dentro del deployment.
 
-Configurar cuotas, presupuesto, logging y tratamiento de datos. Confirmar con el
-cliente si el procesamiento de CVs por un servicio de IA cumple sus políticas.
+Configurar cuotas, presupuesto, logging y tratamiento de datos. Confirmar que el
+procesamiento de CVs por un servicio de IA cumple las políticas de la
+organización.
 
 ## Límites
 

@@ -85,6 +85,6 @@ pnpm build
 - exports: `src/index.ts`;
 - contratos: `packages/shared-types/src/contracts`;
 - OpenAPI: `../../docs/swagger.json`;
-- guías especializadas: `../docs/functions/README.md`.
+- guías especializadas: `../../docs/technical/`.
 
 Swagger debe actualizarse en el mismo cambio que altere una función pública.
