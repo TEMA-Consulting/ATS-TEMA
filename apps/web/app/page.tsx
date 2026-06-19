@@ -1,7 +1,10 @@
+import { Suspense } from 'react';
+import JobPortal from './features/jobs/components/JobPortal';
+
 export default function Home() {
   return (
-    <main>
-      <h1>ATS HRMS</h1>
-    </main>
+    <Suspense fallback={null}>
+      <JobPortal />
+    </Suspense>
   );
 }

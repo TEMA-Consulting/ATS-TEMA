@@ -1,0 +1,60 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    function hasRole(r) {
+      return isAuth() && request.auth.token.role == r;
+    }
+
+    function isAdminOrHr() {
+      return hasRole('admin') || hasRole('hr');
+    }
+
+    function isBackoffice() {
+      return isAuth() && request.auth.token.role != null;
+    }
+
+    function canWriteApplications() {
+      return hasRole('admin') || hasRole('hr') || hasRole('recruiter');
+    }
+
+    match /jobs/{jobId} {
+      allow read: if isAuth();
+      allow write: if isAdminOrHr();
+    }
+
+    match /applications/{appId} {
+      allow read: if isBackoffice();
+      allow write: if canWriteApplications();
+    }
+
+    match /candidates/{candidateId} {
+      allow read: if isAuth();
+      allow write: if isAdminOrHr();
+    }
+
+    match /employees/{empId} {
+      allow read: if request.auth.uid == empId || isAdminOrHr();
+      allow write: if hasRole('admin');
+    }
+
+    match /emailTemplates/{templateId} {
+      allow read: if isAuth();
+      allow write: if isAdminOrHr();
+    }
+
+    match /emailLogs/{logId} {
+      allow read: if isAdminOrHr();
+      allow write: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

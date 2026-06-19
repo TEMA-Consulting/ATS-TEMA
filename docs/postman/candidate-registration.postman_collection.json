@@ -1,0 +1,155 @@
+{
+  "info": {
+    "_postman_id": "460bdbe1-f51d-44db-832d-a7656eda628c",
+    "name": "ATS - Alta de candidato",
+    "description": "Colección para Firebase Emulator. Ejecutar primero Anonymous Auth y copiar idToken a candidateToken. No contiene tokens ni datos personales reales.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "projectId",
+      "value": "ats-tema-ort"
+    },
+    {
+      "key": "functionsBaseUrl",
+      "value": "http://127.0.0.1:5001/{{projectId}}/us-central1"
+    },
+    {
+      "key": "authBaseUrl",
+      "value": "http://127.0.0.1:9099"
+    },
+    {
+      "key": "candidateToken",
+      "value": ""
+    },
+    {
+      "key": "jobId",
+      "value": "frontend-ssr-developer"
+    },
+    {
+      "key": "candidateId",
+      "value": ""
+    },
+    {
+      "key": "applicationId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "1 - Anonymous Auth",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"returnSecureToken\":true}"
+        },
+        "url": "{{authBaseUrl}}/identitytoolkit.googleapis.com/v1/accounts:signUp?key=fake-api-key"
+      }
+    },
+    {
+      "name": "2A - Registro manual",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{candidateToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"data\":{\"jobId\":\"{{jobId}}\",\"firstName\":\"Persona\",\"lastName\":\"Demo\",\"email\":\"candidate.demo@example.com\",\"phone\":\"+54 11 5555 0101\",\"location\":\"Buenos Aires\",\"yearsOfExperience\":3,\"education\":\"Formación de ejemplo\",\"technicalSkills\":[\"TypeScript\",\"React\"],\"professionalSummary\":\"Perfil ficticio para pruebas locales.\",\"expectedMonthlySalaryArs\":1000000}}"
+        },
+        "url": "{{functionsBaseUrl}}/registerCandidate"
+      }
+    },
+    {
+      "name": "2B - Iniciar registro por CV",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{candidateToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"data\":{\"jobId\":\"{{jobId}}\"}}"
+        },
+        "url": "{{functionsBaseUrl}}/registerCandidateCV"
+      }
+    },
+    {
+      "name": "3 - Obtener perfil para confirmar",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{candidateToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "url": "{{functionsBaseUrl}}/getCandidateProfileForConfirmation?candidateId={{candidateId}}&applicationId={{applicationId}}"
+      }
+    },
+    {
+      "name": "4 - Confirmar perfil",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{candidateToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"data\":{\"candidateId\":\"{{candidateId}}\",\"applicationId\":\"{{applicationId}}\",\"firstName\":\"Persona\",\"lastName\":\"Demo\",\"email\":\"candidate.demo@example.com\",\"phone\":\"+54 11 5555 0101\",\"location\":\"Buenos Aires\",\"yearsOfExperience\":3,\"education\":\"Formación de ejemplo\",\"technicalSkills\":[\"TypeScript\",\"React\"],\"professionalSummary\":\"Perfil ficticio revisado por el usuario.\",\"expectedMonthlySalaryArs\":1000000}}"
+        },
+        "url": "{{functionsBaseUrl}}/confirmCandidateProfile"
+      }
+    }
+  ]
+}

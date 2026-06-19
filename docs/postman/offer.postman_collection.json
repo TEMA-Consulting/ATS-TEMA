@@ -1,0 +1,175 @@
+{
+  "info": {
+    "_postman_id": "01676b2c-2c72-4c48-abf5-1205336de2fd",
+    "name": "ATS - Carta de oferta",
+    "description": "Colección para Firebase Emulator. Usa datos ficticios y variables; no conservar tokens públicos después de la prueba.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "projectId",
+      "value": "ats-tema-ort"
+    },
+    {
+      "key": "functionsBaseUrl",
+      "value": "http://127.0.0.1:5001/{{projectId}}/us-central1"
+    },
+    {
+      "key": "recruiterToken",
+      "value": "dev-recruiter"
+    },
+    {
+      "key": "applicationId",
+      "value": "seed-candidate-01_frontend-ssr-developer"
+    },
+    {
+      "key": "offerId",
+      "value": ""
+    },
+    {
+      "key": "offerToken",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "1 - Crear borrador",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{recruiterToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"applicationId\":\"{{applicationId}}\",\"compensation\":\"ARS 1.500.000 bruto mensual\",\"startDate\":\"2026-07-01\",\"modality\":\"Remoto\",\"benefits\":[\"Beneficio de ejemplo\"],\"expirationDate\":\"2026-07-15\",\"observations\":\"Datos ficticios para emulador.\"}"
+        },
+        "url": "{{functionsBaseUrl}}/createOfferDraft"
+      }
+    },
+    {
+      "name": "2 - Consultar por aplicación",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{recruiterToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "url": "{{functionsBaseUrl}}/getOfferByApplication?applicationId={{applicationId}}"
+      }
+    },
+    {
+      "name": "3 - Previsualizar",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{recruiterToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"offerId\":\"{{offerId}}\"}"
+        },
+        "url": "{{functionsBaseUrl}}/previewOffer"
+      }
+    },
+    {
+      "name": "4 - Enviar",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{recruiterToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"offerId\":\"{{offerId}}\"}"
+        },
+        "url": "{{functionsBaseUrl}}/sendOffer"
+      }
+    },
+    {
+      "name": "5 - Consultar oferta pública",
+      "request": {
+        "method": "GET",
+        "url": "{{functionsBaseUrl}}/getOfferByToken?token={{offerToken}}"
+      }
+    },
+    {
+      "name": "6 - Aceptar oferta",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"token\":\"{{offerToken}}\",\"action\":\"accept\",\"signerName\":\"Persona Demo\"}"
+        },
+        "url": "{{functionsBaseUrl}}/respondOffer"
+      }
+    },
+    {
+      "name": "6B - Rechazar oferta",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"token\":\"{{offerToken}}\",\"action\":\"decline\",\"declineReason\":\"Motivo ficticio de prueba\"}"
+        },
+        "url": "{{functionsBaseUrl}}/respondOffer"
+      }
+    }
+  ]
+}
