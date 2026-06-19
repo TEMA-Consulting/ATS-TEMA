@@ -1,164 +1,214 @@
-# ATS Tema — Sistema de Reclutamiento y Selección
+# ATS TEMA
 
-Monorepo de desarrollo para la plataforma **ATS (Applicant Tracking System) Tema**. Esta solución automatiza los procesos de publicación de empleos, flujo de postulación asistido por IA, dashboard interno de reclutamiento para el equipo de HR y líderes de área, y la integración completa con servicios de Firebase.
+Applicant Tracking System para gestionar posiciones, candidatos, entrevistas,
+comunicaciones y ofertas laborales.
 
----
+## Estado del proyecto
 
-## Stack Tecnológico
+El sistema implementa:
 
-El proyecto está diseñado bajo una arquitectura de monorepo gestionada por **pnpm** y **Turborepo** para garantizar la eficiencia en el desarrollo de componentes cliente y servidor.
+- portal público de posiciones;
+- postulación manual y asistida por parsing de CV;
+- extracción con Gemini en Vertex AI;
+- matching determinístico de skills y FIT%;
+- dashboard de posiciones y candidatos;
+- pipeline configurable con historial;
+- notas y formularios de entrevistas;
+- plantillas y envío de emails mediante Gmail OAuth;
+- integración con Google Calendar;
+- creación, envío y respuesta de ofertas.
 
-| Capa                | Tecnologías                                                        | Descripción                                                       |
-| :------------------ | :----------------------------------------------------------------- | :---------------------------------------------------------------- |
-| **Frontend**        | Next.js 16 (App Router), React 19, MUI (Material UI 9), TypeScript | Portal de candidatos y panel de control interno de reclutamiento. |
-| **Backend**         | Firebase Cloud Functions v2 (Node 22), Firestore                   | Endpoints de negocio HTTP (`onRequest`) y Callables (`onCall`).   |
-| **Servicios Cloud** | Firebase Auth, Cloud Storage, Firebase Emulators                   | Autenticación, almacenamiento de CVs y base de datos NoSQL.       |
-| **Compartido**      | `packages/shared-types`                                            | Contratos de API, esquemas comunes y validaciones compartidas.    |
-| **Tooling**         | pnpm 10, Turborepo, Prettier, ESLint, Vitest                       | Gestión de dependencias, compilación eficiente y testing.         |
+Las limitaciones conocidas están en [docs/LIMITATIONS.md](docs/LIMITATIONS.md).
 
----
+## Stack
 
-## Estructura del Proyecto
+| Capa                 | Tecnología                                  |
+| -------------------- | ------------------------------------------- |
+| Frontend             | Next.js 16, React 19, TypeScript, MUI 9     |
+| Estado y formularios | TanStack Query y TanStack Form              |
+| Backend              | Firebase Cloud Functions v2, Node.js 22     |
+| Datos                | Firestore, Firebase Storage y Firebase Auth |
+| IA                   | Vertex AI Gemini                            |
+| Integraciones        | Gmail API y Google Calendar API             |
+| Monorepo             | pnpm 10 y Turborepo                         |
+| Calidad              | ESLint, TypeScript y Vitest                 |
 
-```txt
-ats-tema/
-├── apps/
-│   ├── web/            # Frontend en Next.js (Portal Público e Interno)
-│   ├── functions/      # Backend en Cloud Functions (Lógica de negocio e Integración con IA)
-│   └── docs/           # Colecciones de Postman, especificaciones y guías internas
-├── docs/               # Documentación general y Especificación Swagger (swagger.json)
-├── packages/
-│   ├── shared-types/   # Modelos, DTOs y enumeradores compartidos entre web y functions
-│   ├── eslint-config/  # Reglas de linting compartidas
-│   └── typescript-config/ # Configuraciones de TypeScript base
-└── scripts/            # Scripts para sembrado de datos (seeding) en emuladores
+## Estructura
+
+```text
+apps/
+  web/                 aplicación Next.js
+  functions/           Cloud Functions
+packages/
+  shared-types/        modelos y contratos compartidos
+  eslint-config/       configuración ESLint
+  typescript-config/   configuración TypeScript
+docs/                  arquitectura, operación, pruebas y referencias técnicas
+scripts/               seeds y administración local
 ```
 
----
+## Documentación
 
-## Requisitos Previos
+| Documento                                          | Uso                                  |
+| -------------------------------------------------- | ------------------------------------ |
+| [Arquitectura](docs/ARCHITECTURE.md)               | Componentes, datos e integraciones   |
+| [Operación](docs/OPERATIONS.md)                    | Deploy, monitoreo, backup y rollback |
+| [Pruebas](docs/TESTING.md)                         | Estrategia y comandos                |
+| [Limitaciones](docs/LIMITATIONS.md)                | Restricciones técnicas conocidas     |
+| [Contribución](contributing/CONTRIBUTING_GUIDE.md) | Convenciones para cambios            |
+| [Frontend](apps/web/README.md)                     | Organización del frontend            |
+| [Diseño](contributing/front/DESIGN_GUIDE.md)       | Sistema visual y accesibilidad       |
+| [API](docs/swagger.json)                           | Especificación OpenAPI               |
+| [Functions](apps/functions/README.md)              | Desarrollo del backend               |
+| [Guías técnicas](docs/technical/)                  | Flujos funcionales vigentes          |
+| [Postman](docs/postman/)                           | Colecciones para emuladores          |
 
-Antes de arrancar el proyecto localmente, asegúrate de tener instalado:
+La fuente de verdad es el código y la documentación canónica de la tabla.
 
-1. **Node.js**: Versión 22 o superior (obligatorio).
-2. **pnpm**: Versión 10 o superior (`npm install -g pnpm`).
-3. **Java Development Kit (JDK)**: Requerido para ejecutar el emulador de Firebase (Firestore y Auth locales).
-4. **Firebase CLI**: Instalado de forma global (`npm install -g firebase-tools`). Debe iniciarse sesión mediante `firebase login`.
+## Requisitos
 
----
+- Node.js 22 LTS. No se garantiza compatibilidad con versiones posteriores.
+- pnpm 10, preferentemente la versión indicada en `package.json`.
+- JDK 21 o compatible para los emuladores.
+- Firebase CLI 14.
+- Acceso a un proyecto Firebase de desarrollo.
+- Google Cloud CLI solamente si se prueba Vertex AI real con ADC.
 
-## Guía de Inicialización en Local
-
-Sigue estos pasos en orden para levantar todo el ecosistema de desarrollo local:
-
-### 1. Instalar Dependencias
-
-Desde la raíz del repositorio, ejecuta:
+Se recomienda habilitar Corepack:
 
 ```bash
-pnpm install
+corepack enable
+corepack prepare pnpm@10.33.2 --activate
 ```
 
-### 2. Configurar Variables de Entorno
-
-- **Frontend (`apps/web`)**:
-  Crea o revisa el archivo `apps/web/.env.local`. Tomá como base `apps/web/.env.example` o el archivo de ejemplo del proyecto y reemplazá los valores por los que correspondan a tu entorno:
-
-  ```env
-  NEXT_PUBLIC_FIREBASE_API_KEY='your-api-key'
-  NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN='your-project.firebaseapp.com'
-  NEXT_PUBLIC_FIREBASE_PROJECT_ID='your-project-id'
-  NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET='your-project.appspot.com'
-  NEXT_PUBLIC_FUNCTIONS_REGION='us-central1'
-  NEXT_PUBLIC_USE_EMULATORS=true
-  ```
-
-- **Backend (`apps/functions`)**:
-  Crea un archivo `.env` dentro de `apps/functions` tomando como base `apps/functions/.env.example`. Si vas a testear el flujo de Gmail en local, asegúrate de configurar las credenciales OAuth:
-  ```env
-  GOOGLE_OAUTH_CLIENT_ID=tu_client_id
-  GOOGLE_OAUTH_CLIENT_SECRET=tu_client_secret
-  GMAIL_MOCK=true # Cambiar a false si se quiere enviar emails reales usando OAuth2
-  ```
-
-### 3. Levantar los Emuladores de Firebase
-
-Para iniciar la base de datos local, autenticación local, storage local y el runtime de Cloud Functions locales, ejecuta:
+## Instalación
 
 ```bash
-firebase emulators:start --only auth,firestore,storage,functions
+git clone https://github.com/grupo-quatro/ats-tema.git
+cd ats-tema
+pnpm install --frozen-lockfile
 ```
 
-Esto levantará el panel de control del emulador en `http://127.0.0.1:4000`.
+## Configuración local
 
-### 4. Cargar Datos de Prueba (Seeding)
+Crear los archivos locales:
 
-Una vez que los emuladores estén activos, abre otra terminal en la raíz y ejecuta el siguiente comando para poblar la base de datos local con trabajos, candidatos y plantillas de correo de ejemplo:
+```bash
+cp apps/web/.env.example apps/web/.env.local
+cp apps/functions/.env.example apps/functions/.env.local
+```
+
+Completar los valores de Firebase. Para trabajo sin integraciones reales:
+
+```env
+# apps/web/.env.local
+NEXT_PUBLIC_USE_EMULATORS=true
+
+# apps/functions/.env.local
+GMAIL_MOCK=true
+CV_PARSING_USE_MOCK=true
+```
+
+Los archivos `.env.local` y cualquier credencial real están ignorados por Git.
+
+## Desarrollo con emuladores
+
+Terminal 1:
+
+```bash
+firebase emulators:start \
+  --only auth,functions,firestore,storage \
+  --import=./emulator-data \
+  --export-on-exit
+```
+
+Si no existe información importable, con los emuladores activos:
 
 ```bash
 pnpm seed
 ```
 
-_(Opcional)_ Si vas a probar la integración con Gmail para enviar correos usando una cuenta de prueba configurada:
-
-```bash
-pnpm seed-gmail
-```
-
-### 5. Levantar el Frontend
-
-Para arrancar el frontend en modo desarrollo, ejecuta:
+Terminal 2:
 
 ```bash
 pnpm dev-web
 ```
 
-Abre `http://localhost:3000` en tu navegador.
+Servicios:
 
----
+- aplicación: `http://localhost:3000`;
+- Emulator UI: `http://127.0.0.1:4000`;
+- Functions: `http://127.0.0.1:5001`;
+- Firestore: `127.0.0.1:8080`;
+- Auth: `127.0.0.1:9099`;
+- Storage: `127.0.0.1:9199`.
 
-## Usuarios de Prueba (Emulador)
-
-En el entorno de desarrollo con emuladores, puedes loguearte directamente utilizando tokens de Firebase Auth mockeados o creando usuarios en la consola. El sistema soporta:
-
-- **Administrador**: Usar claims de rol `admin` para acceder a todo el panel.
-- **Reclutador (HR)**: Usar claims de rol `hr` para gestionar vacantes y candidatos.
-- **Líder de Área**: Usar claims de rol `area_leader` para ver las postulaciones de su departamento.
-
-Para setear claims personalizados de administrador en el emulador, puedes usar el script provisto en la carpeta correspondiente:
+Cuando se modifican Functions, compilarlas en modo watch:
 
 ```bash
-node scripts/set-admin-claim.mjs --uid <UID_DEL_USUARIO>
+pnpm --filter @ats/functions build:watch
 ```
 
----
+## Validación obligatoria
 
-## Documentación de la API
+```bash
+pnpm lint
+pnpm check-types
+pnpm test
+pnpm build
+```
 
-La API del backend está expuesta como Firebase Cloud Functions v2. Contamos con dos tipos de funciones:
+No desplegar un commit que no pase los cuatro comandos.
 
-1. **HTTP standard (`onRequest`)**: Endpoints REST directos invocados por fetch/axios.
-2. **Callables (`onCall`)**: Invocados mediante el SDK cliente de Firebase.
+## Scripts principales
 
-### OpenAPI / Swagger
+| Comando             | Descripción                                           |
+| ------------------- | ----------------------------------------------------- |
+| `pnpm dev`          | Ejecuta las tareas `dev` del monorepo                 |
+| `pnpm dev-web`      | Inicia el frontend                                    |
+| `pnpm compile-fn`   | Compila Functions                                     |
+| `pnpm lint`         | Ejecuta lint y validaciones estáticas                 |
+| `pnpm check-types`  | Valida tipos                                          |
+| `pnpm test`         | Ejecuta Vitest                                        |
+| `pnpm build`        | Construye todas las aplicaciones                      |
+| `pnpm seed`         | Carga datos en emuladores                             |
+| `pnpm seed:staging` | Seed explícito de staging; usar solo con autorización |
 
-Toda la especificación técnica de la API está documentada usando OpenAPI 3.0.3 en el archivo:
-[docs/swagger.json](./docs/swagger.json)
+## Roles
 
-- **Endpoints REST HTTP**: Se definen de forma estándar bajo el objeto `paths`.
-- **Firebase Callables**: Se detallan en la sección personalizada `x-callable-functions` con sus respectivas firmas de payload y response, facilitando su comprensión.
+| Rol           | Descripción       |
+| ------------- | ----------------- |
+| `admin`       | Administración    |
+| `hr`          | Recruiter         |
+| `area_leader` | Líder de área     |
+| `tech_lead`   | Evaluador técnico |
 
----
+Para asignar el primer admin fuera del emulador:
 
-## Scripts Disponibles (Comandos Raíz)
+```bash
+GOOGLE_APPLICATION_CREDENTIALS=/ruta/segura/service-account.json \
+node scripts/set-admin-claim.mjs admin@empresa.example
+```
 
-| Comando            | Acción                                                                                                 |
-| :----------------- | :----------------------------------------------------------------------------------------------------- |
-| `pnpm dev`         | Levanta todos los proyectos y compiladores en modo observación (watch) en paralelo.                    |
-| `pnpm dev-web`     | Levanta únicamente el servidor de desarrollo de Next.js (Frontend).                                    |
-| `pnpm build`       | Compila todo el monorepo para producción (genera bundle de Next.js y compila TypeScript de functions). |
-| `pnpm compile-fn`  | Compila las Cloud Functions (`tsc` en `apps/functions`).                                               |
-| `pnpm lint`        | Corre el análisis de estilo y linting sobre todo el código base.                                       |
-| `pnpm format`      | Formatea el código usando Prettier.                                                                    |
-| `pnpm check-types` | Valida que no haya errores de TypeScript en ningún módulo.                                             |
-| `pnpm test`        | Ejecuta la suite completa de unit-testing mediante Vitest.                                             |
+La clave debe permanecer fuera del repositorio.
+
+## Despliegue
+
+Consultar [docs/OPERATIONS.md](docs/OPERATIONS.md). El método esperado es
+GitHub Actions con Workload Identity Federation y environments protegidos.
+
+No ejecutar `firebase deploy` contra producción hasta:
+
+- identificar la release;
+- completar validaciones;
+- verificar proyecto y credenciales;
+- disponer de backup y rollback;
+- tener aprobación del responsable del entorno.
+
+## Seguridad
+
+- No versionar tokens, claves, service accounts ni CVs reales.
+- Usar datos ficticios en seeds y tests.
+- Tratar los CVs y decisiones de contratación como datos personales sensibles.
+- Validar autorización en backend y reglas, no solo en la UI.
+- Revisar `firestore.rules` y `storage.rules` con cada cambio de acceso.

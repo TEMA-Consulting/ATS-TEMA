@@ -2,8 +2,8 @@
   "openapi": "3.0.3",
   "info": {
     "title": "ATS HRMS — Cloud Functions API",
-    "description": "HTTP endpoints exposed as Firebase Cloud Functions (onRequest). Callable functions (onCall) use the Firebase SDK protocol and are documented here for reference with their logical payload shapes.\n\nBase URL pattern: `https://{region}-{project}.cloudfunctions.net/{functionName}`\n\nAuthentication: All protected endpoints require a Firebase ID token passed as `Authorization: Bearer <token>`. In the local emulator the token `dev-recruiter` bypasses verification and resolves to uid `recruiter-dev`.",
-    "version": "1.0.0",
+    "description": "HTTP endpoints exposed as Firebase Cloud Functions (onRequest). Callable functions use the Firebase SDK protocol and are documented in x-callable-functions. Triggers, scheduled functions and HTTP functions not yet modeled path-by-path are listed in x-platform-functions.\n\nBase URL pattern: `https://{region}-{project}.cloudfunctions.net/{functionName}`.\n\nProtected HTTP endpoints require a Firebase ID token in `Authorization: Bearer <token>`. Emulator-only technical tokens are implemented in `apps/functions/src/core/httpAuth.ts`; never use them outside Firebase Emulator.",
+    "version": "1.1.0",
     "contact": {
       "name": "ATS HRMS Team"
     }
@@ -14,7 +14,7 @@
       "description": "Production",
       "variables": {
         "project": {
-          "default": "ats-hrms",
+          "default": "your-firebase-project",
           "description": "Firebase project ID"
         }
       }
@@ -24,7 +24,7 @@
       "description": "Local emulator",
       "variables": {
         "project": {
-          "default": "ats-hrms"
+          "default": "your-firebase-project"
         }
       }
     }
@@ -5220,6 +5220,24 @@
         },
         "response": "{ processed: number }"
       }
+    ]
+  },
+  "x-platform-functions": {
+    "description": "Inventory of exported platform functions that are not represented as ordinary OpenAPI paths. The deployment source of truth is apps/functions/src/index.ts.",
+    "httpNotYetModeled": [
+      "previewApplicationStageEmail",
+      "exchangeGoogleCode",
+      "registerCalendarWatch",
+      "calendarWebhook"
+    ],
+    "background": [
+      "onCVUploaded",
+      "onApplicationCreated",
+      "onCandidateMatchingInputsUpdated",
+      "onJobMatchingInputsUpdated",
+      "onApplicationUpdated",
+      "onUserCreated",
+      "renewCalendarWatches"
     ]
   }
 }

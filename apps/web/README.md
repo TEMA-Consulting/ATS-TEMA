@@ -1,36 +1,65 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/create-next-app).
+# Frontend
 
-## Getting Started
+Aplicación Next.js 16 del ATS. Incluye el portal público, la postulación, el
+dashboard interno y las rutas servidor usadas para sesión y OAuth.
 
-First, run the development server:
+## Ejecutar
+
+Desde la raíz:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp apps/web/.env.example apps/web/.env.local
+pnpm install --frozen-lockfile
+pnpm dev-web
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Desde este directorio:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+pnpm dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load Inter, a custom Google Font.
+La aplicación queda disponible en `http://localhost:3000`.
 
-## Learn More
+## Variables
 
-To learn more about Next.js, take a look at the following resources:
+Consultar `.env.example`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `NEXT_PUBLIC_*` se envía al navegador y no debe contener secretos.
+- `NEXT_PUBLIC_USE_EMULATORS=true` conecta Auth, Firestore, Storage y Functions
+  a los puertos definidos en `firebase.json`.
+- En producción, el servidor usa Firebase Admin con Application Default
+  Credentials.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Organización
 
-## Deploy on Vercel
+```text
+app/
+  api/                 rutas servidor de sesión y OAuth
+  dashboard/           rutas internas
+  jobs/                listado y detalle público
+  postulation/         flujo de postulación
+  candidate/           detalle de candidato
+  offer/               oferta pública por token
+  features/            módulos funcionales
+  repositories/        interfaces e implementaciones Firebase
+  shared/              APIs, componentes y utilidades
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Convenciones completas:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `../../contributing/front/DESIGN_GUIDE.md`;
+- `../../contributing/CONTRIBUTING_GUIDE.md`;
+- `../../docs/ARCHITECTURE.md`.
+
+## Calidad
+
+```bash
+pnpm lint
+pnpm check-types
+pnpm test
+pnpm build
+```
+
+El build puede advertir sobre la migración futura de `middleware.ts` a
+`proxy.ts`. Está registrada en `docs/LIMITATIONS.md`.
